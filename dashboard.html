@@ -219,15 +219,29 @@
     renderTable();
   }
 
+  // Maps inspection_type -> the form file that handles it. Extend this as
+  // the remaining three tiers (Residential Full, Exterior, Interior/
+  // Exterior) get built, rather than hardcoding a single destination —
+  // unrecognized or missing types fall back to Lite, since every record
+  // created so far is that type.
+  var FORM_FILES = {
+    residential_lite: '/app-residential-lite.html'
+  };
+  function formFileFor(inspectionType) {
+    return FORM_FILES[inspectionType] || FORM_FILES.residential_lite;
+  }
+
   function newInspection() {
-    // Placeholder until the Residential inspection form itself exists —
-    // this will become window.location.href = '/app-residential.html'
-    // once that's built (next step after this dashboard shell).
-    showToast('Residential inspection form not built yet — coming next.');
+    // Once more than one form type exists, this should show a small picker
+    // (Lite / Full / Exterior / Interior-Exterior) before navigating —
+    // for now there's only one tier built, so go straight there.
+    window.location.href = formFileFor('residential_lite');
   }
 
   function openInspection(id) {
-    showToast('Residential inspection form not built yet — coming next.');
+    var record = allInspections.find(function(r) { return r.id === id; });
+    var type = record ? record.inspection_type : null;
+    window.location.href = formFileFor(type) + '?id=' + encodeURIComponent(id);
   }
 
   async function deleteInspection(id) {
