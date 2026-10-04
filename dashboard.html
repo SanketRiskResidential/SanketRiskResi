@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — SanketRisk Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    /* Residential theme — same variable names as Commercial, new values.
+       See login.html for the full rationale; keep these two files' :root
+       blocks in sync if you tweak the palette. */
+    --navy:       #2d3b2e;
+    --navy-mid:   #3d4f3f;
+    --navy-light: #526b55;
+    --gold:       #c17a56;
+    --gold-light: #d99b7a;
+    --gold-pale:  #f3e2d6;
+    --slate:      #6b5d52;
+    --slate-light:#a69686;
+    --border:     #ddd2c4;
+    --bg:         #f7f4ef;
+    --card-bg:    #ffffff;
+  }
+  html, body { height: 100%; font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--navy); }
+  .topnav { background: var(--navy); padding: 0 32px; height: 58px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; border-bottom: 2px solid var(--gold); }
+  .nav-logo { display: flex; align-items: center; gap: 12px; }
+  .nav-logo-icon { width: 32px; height: 32px; background: var(--gold); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .nav-logo-text { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: #fff; }
+  .nav-logo-text span { color: var(--gold); }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-user { font-size: 13px; color: var(--slate-light); }
+  .nav-user strong { color: #fff; font-weight: 600; }
+  .role-pill { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; padding: 3px 9px; border-radius: 20px; font-family: 'IBM Plex Mono', monospace; }
+  .role-pill.admin { background: var(--gold); color: var(--navy); }
+  .role-pill.inspector { background: rgba(255,255,255,0.12); color: #c8d8e8; }
+  .btn-signout { background: none; border: 1px solid rgba(255,255,255,0.2); color: #a8bfd4; font-size: 12px; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; transition: all .2s; }
+  .btn-signout:hover { border-color: var(--gold); color: var(--gold); }
+  .main { max-width: 1400px; margin: 0 auto; padding: 32px 32px 60px; }
+  .page-header { margin-bottom: 28px; }
+  .page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .page-subtitle { font-size: 13px; color: var(--slate); }
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; position: relative; overflow: hidden; }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent-color, var(--gold)); }
+  .stat-card.accent-green  { --accent-color: #38a169; }
+  .stat-card.accent-orange { --accent-color: #dd6b20; }
+  .stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--slate); margin-bottom: 10px; font-family: 'IBM Plex Mono', monospace; }
+  .stat-value { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: var(--navy); line-height: 1; }
+  .table-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; overflow: visible; }
+  .table-scroll-wrap { overflow-x: auto; border-radius: 0 0 10px 10px; }
+  .table-toolbar { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .search-input { flex: 1; min-width: 160px; padding: 7px 12px; border: 1px solid var(--border); border-radius: 7px; font-family: inherit; font-size: 13px; color: var(--navy); outline: none; }
+  .search-input:focus { border-color: var(--gold); }
+  .filter-select { padding: 7px 10px; border: 1px solid var(--border); border-radius: 7px; font-family: inherit; font-size: 12px; color: var(--navy); background: #fff; cursor: pointer; outline: none; }
+  .btn-new-insp { background: var(--navy); color: #fff; border: none; border-radius: 7px; padding: 7px 16px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .btn-new-insp:hover { background: var(--navy-mid); }
+  table { width: 100%; min-width: 700px; border-collapse: collapse; font-size: 13px; }
+  thead th { background: #f0ece4; padding: 10px 14px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--slate); border-bottom: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; }
+  tbody tr { border-bottom: 1px solid #f0ece6; cursor: pointer; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #faf7f2; }
+  td { padding: 12px 14px; color: var(--navy); vertical-align: middle; }
+  .td-name { font-weight: 600; }
+  .td-sub  { font-size: 11px; color: var(--slate); margin-top: 2px; }
+  .status-badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-family: 'IBM Plex Mono', monospace; }
+  .status-draft     { background: #EDF2F7; color: #4A5568; }
+  .status-submitted { background: #FFF3E0; color: #C05621; }
+  .status-inreview  { background: #FAF5FF; color: #6B46C1; }
+  .status-approved  { background: #F0FFF4; color: #276749; }
+  .status-returned  { background: #FEE2E2; color: #C53030; }
+  .btn-open { background: none; border: 1px solid var(--border); color: var(--slate); border-radius: 6px; padding: 5px 12px; font-size: 11px; font-family: inherit; cursor: pointer; }
+  .btn-open:hover { border-color: var(--navy); color: var(--navy); background: var(--bg); }
+  .empty-state { text-align: center; padding: 50px 20px; color: var(--slate-light); }
+  .empty-icon { font-size: 36px; margin-bottom: 10px; }
+  .empty-text { font-size: 14px; }
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--navy); color: #fff; padding: 10px 22px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none; z-index: 9999; border-left: 3px solid var(--gold); }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (max-width: 700px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .topnav { padding: 0 16px; }
+    .main { padding: 20px 14px 50px; }
+    .nav-user { display: none; }
+  }
+</style>
+</head>
+<body>
+  <nav class="topnav">
+    <div class="nav-logo">
+      <div class="nav-logo-icon">🏠</div>
+      <div class="nav-logo-text">Sanket<span>Risk</span> Home</div>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user">Signed in as <strong id="nav-name">—</strong></span>
+      <span class="role-pill" id="nav-role-pill">inspector</span>
+      <button class="btn-signout" onclick="signOut()">Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="page-header">
+      <div class="page-title">Dashboard</div>
+      <div class="page-subtitle" id="page-subtitle">Loading your inspections…</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total Inspections</div>
+        <div class="stat-value" id="stat-total">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Draft</div>
+        <div class="stat-value" id="stat-draft">—</div>
+      </div>
+      <div class="stat-card accent-orange">
+        <div class="stat-label">In Review</div>
+        <div class="stat-value" id="stat-inreview">—</div>
+      </div>
+      <div class="stat-card accent-green">
+        <div class="stat-label">Approved</div>
+        <div class="stat-value" id="stat-approved">—</div>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-toolbar">
+        <input type="text" class="search-input" id="search-input" placeholder="Search by name or address…" oninput="renderTable()">
+        <select class="filter-select" id="status-filter" onchange="renderTable()">
+          <option value="">All Statuses</option>
+          <option value="draft">Draft</option>
+          <option value="submitted">Submitted</option>
+          <option value="inreview">In Review</option>
+          <option value="approved">Approved</option>
+          <option value="returned">Returned</option>
+        </select>
+        <button class="btn-new-insp" onclick="newInspection()">＋ New Inspection</button>
+      </div>
+      <div class="table-scroll-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Owner / Insured</th>
+              <th>Address</th>
+              <th>Status</th>
+              <th>Updated</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  // NOTE: replace with your new Residential Supabase project's own URL and
+  // anon (public) key — same project login.html points at.
+  const SUPABASE_URL = 'https://lkihphmtyusqmnhbfswq.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_X7JifOrQKvkCwGD7DQpPZg_-6jB5j3Z';
+  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  var allInspections = [];
+  var currentUser = null;
+
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 2800);
+  }
+
+  function statusClass(status) {
+    var map = { draft: 'status-draft', submitted: 'status-submitted', inreview: 'status-inreview', approved: 'status-approved', returned: 'status-returned' };
+    return map[status] || 'status-draft';
+  }
+
+  function renderTable() {
+    var search = (document.getElementById('search-input').value || '').toLowerCase();
+    var statusFilter = document.getElementById('status-filter').value;
+    var filtered = allInspections.filter(function(r) {
+      var matchesSearch = !search || (r.insured_name || '').toLowerCase().indexOf(search) !== -1 || (r.location || '').toLowerCase().indexOf(search) !== -1;
+      var matchesStatus = !statusFilter || r.report_status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+    var tbody = document.getElementById('table-body');
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🏠</div><div class="empty-text">No inspections yet — click "New Inspection" to get started.</div></div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = filtered.map(function(r) {
+      var updated = r.updated_at ? new Date(r.updated_at).toLocaleDateString() : '—';
+      return '<tr onclick="openInspection(\'' + r.id + '\')">' +
+        '<td class="td-name">' + (r.insured_name || 'Untitled') + '</td>' +
+        '<td>' + (r.location || '—') + '</td>' +
+        '<td><span class="status-badge ' + statusClass(r.report_status) + '">' + (r.report_status || 'draft') + '</span></td>' +
+        '<td>' + updated + '</td>' +
+        '<td><button class="btn-open" onclick="event.stopPropagation();deleteInspection(\'' + r.id + '\')">Delete</button></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function updateStats() {
+    document.getElementById('stat-total').textContent = allInspections.length;
+    document.getElementById('stat-draft').textContent = allInspections.filter(function(r) { return r.report_status === 'draft' || !r.report_status; }).length;
+    document.getElementById('stat-inreview').textContent = allInspections.filter(function(r) { return r.report_status === 'inreview'; }).length;
+    document.getElementById('stat-approved').textContent = allInspections.filter(function(r) { return r.report_status === 'approved'; }).length;
+  }
+
+  async function loadInspections() {
+    const { data, error } = await _supabase.from('inspections').select('*').order('updated_at', { ascending: false });
+    if (error) { showToast('⚠ Failed to load inspections: ' + error.message); return; }
+    allInspections = data || [];
+    document.getElementById('page-subtitle').textContent = allInspections.length + ' inspection(s) on file';
+    updateStats();
+    renderTable();
+  }
+
+  function newInspection() {
+    // Placeholder until the Residential inspection form itself exists —
+    // this will become window.location.href = '/app-residential.html'
+    // once that's built (next step after this dashboard shell).
+    showToast('Residential inspection form not built yet — coming next.');
+  }
+
+  function openInspection(id) {
+    showToast('Residential inspection form not built yet — coming next.');
+  }
+
+  async function deleteInspection(id) {
+    if (!confirm('Delete this inspection? This cannot be undone.')) return;
+    const { error } = await _supabase.from('inspections').delete().eq('id', id);
+    if (error) { showToast('⚠ Delete failed: ' + error.message); return; }
+    showToast('✓ Inspection deleted');
+    loadInspections();
+  }
+
+  async function signOut() { await _supabase.auth.signOut(); window.location.replace('/login.html'); }
+
+  (async function init() {
+    const { data: { session } } = await _supabase.auth.getSession();
+    if (!session) { window.location.replace('/login.html'); return; }
+    currentUser = session.user;
+    document.getElementById('nav-name').textContent = currentUser.email || 'User';
+    loadInspections();
+  })();
+</script>
+</body>
+</html>
