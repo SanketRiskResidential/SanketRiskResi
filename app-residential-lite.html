@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Residential Lite Inspection — SanketRisk Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    /* Same Residential palette as login.html / dashboard.html — keep all
+       three :root blocks in sync if the theme ever changes. */
+    --navy:       #2d3b2e;
+    --navy-mid:   #3d4f3f;
+    --navy-light: #526b55;
+    --gold:       #c17a56;
+    --gold-light: #d99b7a;
+    --gold-pale:  #f3e2d6;
+    --slate:      #6b5d52;
+    --slate-light:#a69686;
+    --border:     #ddd2c4;
+    --bg:         #f7f4ef;
+    --card-bg:    #ffffff;
+  }
+  html, body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--navy); }
+  .topnav { background: var(--navy); padding: 0 32px; height: 58px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; border-bottom: 2px solid var(--gold); }
+  .nav-logo { display: flex; align-items: center; gap: 12px; color: #fff; font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; }
+  .nav-logo span { color: var(--gold); }
+  .nav-right { display: flex; align-items: center; gap: 10px; }
+  .btn-nav { background: none; border: 1px solid rgba(255,255,255,0.2); color: #a8bfd4; font-size: 12px; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-family: inherit; }
+  .btn-nav:hover { border-color: var(--gold); color: var(--gold); }
+  .main { max-width: 900px; margin: 0 auto; padding: 28px 20px 80px; }
+  .page-title { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--slate); margin-bottom: 24px; }
+  .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 22px; margin-bottom: 18px; }
+  .card-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field { display: flex; flex-direction: column; }
+  .field.full { grid-column: 1 / -1; }
+  .field label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--slate); margin-bottom: 6px; }
+  .field input, .field select, .field textarea { padding: 9px 11px; border: 1px solid var(--border); border-radius: 7px; font-size: 13.5px; font-family: inherit; background: var(--bg); color: var(--navy); }
+  .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--gold); }
+  .field textarea { min-height: 70px; resize: vertical; }
+  .check-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .check-btn { padding: 7px 14px; border: 1px solid var(--border); border-radius: 20px; font-size: 12.5px; cursor: pointer; background: #fff; color: var(--slate); transition: all .15s; user-select: none; }
+  .check-btn.selected { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .radio-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .radio-btn { padding: 8px 16px; border: 1px solid var(--border); border-radius: 20px; font-size: 12.5px; cursor: pointer; background: #fff; color: var(--slate); transition: all .15s; user-select: none; }
+  .radio-btn.selected { background: var(--gold); color: var(--navy); border-color: var(--gold); font-weight: 700; }
+  .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+  .photo-slot { position: relative; aspect-ratio: 1; border: 1px dashed var(--border); border-radius: 8px; overflow: hidden; cursor: pointer; background: var(--bg); display: flex; align-items: center; justify-content: center; }
+  .photo-slot img { width: 100%; height: 100%; object-fit: cover; display: none; }
+  .photo-slot img.loaded { display: block; }
+  .photo-placeholder { font-size: 22px; color: var(--slate-light); }
+  .photo-slot.has-photo .photo-placeholder { display: none; }
+  .photo-remove-btn { position: absolute; top: 5px; right: 5px; background: rgba(197,48,48,0.85); border: none; color: #fff; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: none; z-index: 5; }
+  .photo-slot.has-photo .photo-remove-btn { display: block; }
+  .rec-item { border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+  .rec-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .rec-num { font-size: 12px; color: var(--slate); font-family: 'IBM Plex Mono', monospace; }
+  .btn-del-rec { background: none; border: none; color: #c0392b; cursor: pointer; font-size: 16px; }
+  .btn-add-rec { background: none; border: 1px dashed var(--border); color: var(--slate); padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; font-size: 13px; font-family: inherit; }
+  .btn-add-rec:hover { border-color: var(--gold); color: var(--gold-light); }
+  .action-bar { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .btn-save { background: none; border: 1px solid var(--navy); color: var(--navy); padding: 11px 22px; border-radius: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn-submit { background: var(--navy); color: #fff; border: none; padding: 11px 22px; border-radius: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn-submit:hover { background: var(--navy-mid); }
+  .qa-banner { background: var(--gold-pale); border: 1px solid var(--gold); border-radius: 8px; padding: 14px 18px; margin-bottom: 18px; font-size: 13px; }
+  .qa-banner strong { display: block; margin-bottom: 4px; }
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--navy); color: #fff; padding: 10px 22px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none; z-index: 9999; border-left: 3px solid var(--gold); }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+  <nav class="topnav">
+    <div class="nav-logo">Sanket<span>Risk</span> Home — Residential Lite</div>
+    <div class="nav-right">
+      <button class="btn-nav" onclick="window.location.href='/dashboard.html'">← Dashboard</button>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="page-title">Residential Lite Inspection</div>
+    <div class="page-sub" id="page-sub">New inspection — not yet saved</div>
+
+    <div class="qa-banner" id="qa-banner" style="display:none;">
+      <strong>QA Status: <span id="qa-status-text"></span></strong>
+      <span id="qa-notes-text"></span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Property Basics</div>
+      <div class="form-grid">
+        <div class="field"><label>Insured / Owner Name</label><input id="insured-name" type="text" placeholder="e.g. Jane Smith"></div>
+        <div class="field"><label>Inspection Date</label><input id="inspection-date" type="date"></div>
+        <div class="field full"><label>Street Address</label><input id="location" type="text" placeholder="e.g. 123 Maple Street"></div>
+        <div class="field"><label>City</label><input id="city" type="text"></div>
+        <div class="field"><label>Province / State</label><input id="province-state" type="text"></div>
+        <div class="field"><label>Postal / ZIP Code</label><input id="postal-code" type="text"></div>
+        <div class="field"><label>Inspector Name</label><input id="inspector-name" type="text"></div>
+        <div class="field"><label>Year Built</label><input id="year-built" type="number" min="1800" placeholder="e.g. 1985"></div>
+        <div class="field"><label>Approx. Square Footage</label><input id="square-footage" type="number" min="0" placeholder="e.g. 1800"></div>
+        <div class="field"><label>Number of Storeys</label><input id="storeys" type="number" min="1" placeholder="e.g. 2"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Roof</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Roof Type / Material</label>
+          <select id="roof-type">
+            <option value="">— Select —</option>
+            <option>Asphalt Shingle</option>
+            <option>Metal</option>
+            <option>Tile</option>
+            <option>Flat / Membrane</option>
+            <option>Wood Shake</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Roof Age</label>
+          <select id="roof-age-status">
+            <option value="">— Select —</option>
+            <option>Original / Unknown</option>
+            <option>0–5 years</option>
+            <option>6–10 years</option>
+            <option>11–15 years</option>
+            <option>16–20 years</option>
+            <option>20+ years</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Roof Condition</label>
+          <select id="roof-condition">
+            <option value="">— Select —</option>
+            <option>Good</option>
+            <option>Fair</option>
+            <option>Poor</option>
+            <option>Unable to Assess</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Exterior</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Siding / Cladding Material</label>
+          <select id="siding-material">
+            <option value="">— Select —</option>
+            <option>Vinyl</option>
+            <option>Brick</option>
+            <option>Wood</option>
+            <option>Stucco</option>
+            <option>Fiber Cement</option>
+            <option>Aluminum</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Foundation Type</label>
+          <select id="foundation-type">
+            <option value="">— Select —</option>
+            <option>Concrete</option>
+            <option>Block</option>
+            <option>Stone</option>
+            <option>Unknown</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Exterior Condition</label>
+          <select id="exterior-condition">
+            <option value="">— Select —</option>
+            <option>Good</option>
+            <option>Fair</option>
+            <option>Poor</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Site Hazards</div>
+      <div class="field full" style="margin-bottom:14px;">
+        <label>Select all that apply</label>
+        <div class="check-group" id="site-hazards">
+          <div class="check-btn" onclick="toggleCheck(this)">Trees Overhanging Roof</div>
+          <div class="check-btn" onclick="toggleCheck(this)">Brush / Wildfire Proximity</div>
+          <div class="check-btn" onclick="toggleCheck(this)">Visible Drainage Issues</div>
+          <div class="check-btn" onclick="toggleCheck(this)">Pool Present</div>
+          <div class="check-btn" onclick="toggleCheck(this)">Trampoline Present</div>
+          <div class="check-btn" onclick="toggleCheck(this)">None Observed</div>
+        </div>
+      </div>
+      <div class="field full"><label>Hazard Notes</label><textarea id="hazard-notes" placeholder="Any additional detail on the above..."></textarea></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Overall Assessment</div>
+      <div class="form-grid" style="margin-bottom:16px;">
+        <div class="field">
+          <label>Overall Property Condition</label>
+          <select id="overall-condition">
+            <option value="">— Select —</option>
+            <option>Excellent</option>
+            <option>Good</option>
+            <option>Fair</option>
+            <option>Poor</option>
+          </select>
+        </div>
+      </div>
+      <div class="field full">
+        <label>Risk Quality Rating</label>
+        <div class="radio-group" id="risk-quality">
+          <div class="radio-btn" onclick="selectRadio(this,'risk-quality')">Preferred</div>
+          <div class="radio-btn" onclick="selectRadio(this,'risk-quality')">Standard</div>
+          <div class="radio-btn" onclick="selectRadio(this,'risk-quality')">Sub-Standard</div>
+          <div class="radio-btn" onclick="selectRadio(this,'risk-quality')">Unacceptable</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Photos</div>
+      <div class="photo-grid" id="photo-grid"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Recommendations</div>
+      <div id="rec-list"></div>
+      <button class="btn-add-rec" onclick="addRecommendation()">＋ Add Recommendation</button>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn-save" onclick="saveInspection('draft')">Save Draft</button>
+      <button class="btn-submit" onclick="saveInspection('submitted')">Submit for QA Review</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  const SUPABASE_URL = 'https://lkihphmtyusqmnhbfswq.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_X7JifOrQKvkCwGD7DQpPZg_-6jB5j3Z';
+  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  var currentInspectionId = null;
+  var currentUser = null;
+  var recCount = 0;
+  var photoCount = 6; // fixed number of photo slots for the Lite tier
+  var pendingPhotoUploads = {}; // slot num -> File, flushed on save
+
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 2800);
+  }
+
+  // ── Pills (checkboxes / radios) ──
+  function toggleCheck(el) { el.classList.toggle('selected'); }
+  function selectRadio(el, groupId) {
+    var group = document.getElementById(groupId);
+    group.querySelectorAll('.radio-btn').forEach(function(b) { b.classList.remove('selected'); });
+    el.classList.add('selected');
+  }
+  function getRadioGroupValue(groupId) {
+    var group = document.getElementById(groupId);
+    var sel = group ? group.querySelector('.radio-btn.selected') : null;
+    return sel ? sel.textContent.trim() : '';
+  }
+  function getCheckGroupValues(groupId) {
+    var group = document.getElementById(groupId);
+    var vals = [];
+    if (group) group.querySelectorAll('.check-btn.selected').forEach(function(b) { vals.push(b.textContent.trim()); });
+    return vals;
+  }
+
+  // ── Photos ──
+  function buildPhotoGrid() {
+    var grid = document.getElementById('photo-grid');
+    var html = '';
+    for (var i = 1; i <= photoCount; i++) {
+      html += '<div class="photo-slot" id="photo-' + i + '-wrap" onclick="document.getElementById(\'photo-' + i + '-file\').click()">' +
+        '<img id="photo-' + i + '-img" alt="Photo ' + i + '">' +
+        '<div class="photo-placeholder" id="photo-' + i + '-placeholder">📷</div>' +
+        '<button class="photo-remove-btn" onclick="event.stopPropagation();clearPhoto(event,' + i + ')">✕</button>' +
+        '<input type="file" accept="image/*" id="photo-' + i + '-file" style="display:none" onchange="handlePhotoFile(event,' + i + ')">' +
+        '</div>';
+    }
+    grid.innerHTML = html;
+  }
+  function handlePhotoFile(event, num) {
+    var file = event.target.files[0];
+    if (!file) return;
+    pendingPhotoUploads[num] = file;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = document.getElementById('photo-' + num + '-img');
+      img.src = e.target.result;
+      img.classList.add('loaded');
+      document.getElementById('photo-' + num + '-wrap').classList.add('has-photo');
+    };
+    reader.readAsDataURL(file);
+  }
+  function clearPhoto(event, num) {
+    event.stopPropagation();
+    if (!confirm('Remove this photo?')) return;
+    var img = document.getElementById('photo-' + num + '-img');
+    img.src = ''; img.classList.remove('loaded'); img.removeAttribute('data-storage-path');
+    document.getElementById('photo-' + num + '-wrap').classList.remove('has-photo');
+    document.getElementById('photo-' + num + '-file').value = '';
+    delete pendingPhotoUploads[num];
+  }
+  async function flushPendingPhotoUploads() {
+    if (!currentInspectionId) return;
+    for (var num in pendingPhotoUploads) {
+      var file = pendingPhotoUploads[num];
+      var path = currentInspectionId + '/' + num + '-' + Date.now() + '.jpg';
+      const { error } = await _supabase.storage.from('inspection-photos').upload(path, file, { upsert: true });
+      if (!error) document.getElementById('photo-' + num + '-img').setAttribute('data-storage-path', path);
+    }
+    pendingPhotoUploads = {};
+  }
+  function collectPhotoPaths() {
+    var paths = [];
+    for (var i = 1; i <= photoCount; i++) {
+      var img = document.getElementById('photo-' + i + '-img');
+      var p = img ? img.getAttribute('data-storage-path') : null;
+      if (p) paths.push(p);
+    }
+    return paths;
+  }
+
+  // ── Recommendations ──
+  function addRecommendation(title, text, priority) {
+    recCount++;
+    var div = document.createElement('div');
+    div.className = 'rec-item';
+    div.id = 'rec-' + recCount;
+    div.innerHTML =
+      '<div class="rec-item-header"><span class="rec-num">#' + recCount + '</span><button class="btn-del-rec" onclick="this.closest(\'.rec-item\').remove()">✕</button></div>' +
+      '<div class="form-grid">' +
+        '<div class="field full"><label>Title</label><input type="text" class="rec-title" value="' + (title ? title.replace(/"/g,'&quot;') : '') + '"></div>' +
+        '<div class="field"><label>Priority</label><select class="rec-priority"><option' + (priority==='High'?' selected':'') + '>High</option><option' + (priority==='Medium'||!priority?' selected':'') + '>Medium</option><option' + (priority==='Low'?' selected':'') + '>Low</option></select></div>' +
+        '<div class="field full"><label>Description</label><textarea class="rec-text">' + (text || '') + '</textarea></div>' +
+      '</div>';
+    document.getElementById('rec-list').appendChild(div);
+  }
+  function collectRecommendations() {
+    var recs = [];
+    document.querySelectorAll('#rec-list .rec-item').forEach(function(item) {
+      var title = item.querySelector('.rec-title').value.trim();
+      var text = item.querySelector('.rec-text').value.trim();
+      var priority = item.querySelector('.rec-priority').value;
+      if (title || text) recs.push({ title: title, text: text, priority: priority });
+    });
+    return recs;
+  }
+
+  // ── Save / Load ──
+  function collectFormData() {
+    const get = id => { var el = document.getElementById(id); return el ? el.value : ''; };
+    return {
+      inspection_date: get('inspection-date'),
+      inspector_name: get('inspector-name'),
+      year_built: get('year-built'),
+      square_footage: get('square-footage'),
+      storeys: get('storeys'),
+      roof_type: get('roof-type'),
+      roof_age_status: get('roof-age-status'),
+      roof_condition: get('roof-condition'),
+      siding_material: get('siding-material'),
+      foundation_type: get('foundation-type'),
+      exterior_condition: get('exterior-condition'),
+      site_hazards: getCheckGroupValues('site-hazards'),
+      hazard_notes: get('hazard-notes'),
+      overall_condition: get('overall-condition'),
+      risk_quality: getRadioGroupValue('risk-quality'),
+      recommendations: collectRecommendations(),
+      photo_paths: collectPhotoPaths()
+    };
+  }
+
+  async function saveInspection(targetStatus) {
+    const get = id => { var el = document.getElementById(id); return el ? el.value : ''; };
+    var payload = {
+      inspection_type: 'residential_lite',
+      insured_name: get('insured-name'),
+      location: get('location'),
+      city: get('city'),
+      province_state: get('province-state'),
+      postal_code: get('postal-code'),
+      inspection_date: get('inspection-date') || null,
+      inspector_name: get('inspector-name'),
+      report_status: targetStatus,
+      form_data: collectFormData(),
+      user_id: currentUser ? currentUser.id : null,
+      user_email: currentUser ? currentUser.email : null
+    };
+    try {
+      var result;
+      if (currentInspectionId) {
+        result = await _supabase.from('inspections').update(payload).eq('id', currentInspectionId).select();
+      } else {
+        result = await _supabase.from('inspections').insert(payload).select();
+      }
+      if (result.error) throw result.error;
+      if (!currentInspectionId && result.data && result.data[0]) currentInspectionId = result.data[0].id;
+      await flushPendingPhotoUploads();
+      // Re-save with any newly-uploaded photo paths now attached
+      await _supabase.from('inspections').update({ form_data: collectFormData() }).eq('id', currentInspectionId);
+      document.getElementById('page-sub').textContent = 'Saved — ' + (targetStatus === 'submitted' ? 'submitted for QA review' : 'draft');
+      showToast(targetStatus === 'submitted' ? '✓ Submitted for QA review' : '✓ Draft saved');
+    } catch (e) {
+      showToast('⚠ Save failed: ' + e.message);
+    }
+  }
+
+  async function loadInspection(id) {
+    const { data, error } = await _supabase.from('inspections').select('*').eq('id', id).single();
+    if (error) { showToast('⚠ Failed to load: ' + error.message); return; }
+    currentInspectionId = data.id;
+    const set = (id, v) => { var el = document.getElementById(id); if (el && v != null) el.value = v; };
+    set('insured-name', data.insured_name);
+    set('location', data.location);
+    set('city', data.city);
+    set('province-state', data.province_state);
+    set('postal-code', data.postal_code);
+    set('inspection-date', data.inspection_date);
+    set('inspector-name', data.inspector_name);
+    var fd = data.form_data || {};
+    set('year-built', fd.year_built);
+    set('square-footage', fd.square_footage);
+    set('storeys', fd.storeys);
+    set('roof-type', fd.roof_type);
+    set('roof-age-status', fd.roof_age_status);
+    set('roof-condition', fd.roof_condition);
+    set('siding-material', fd.siding_material);
+    set('foundation-type', fd.foundation_type);
+    set('exterior-condition', fd.exterior_condition);
+    set('hazard-notes', fd.hazard_notes);
+    set('overall-condition', fd.overall_condition);
+    (fd.site_hazards || []).forEach(function(label) {
+      document.querySelectorAll('#site-hazards .check-btn').forEach(function(b) {
+        if (b.textContent.trim() === label) b.classList.add('selected');
+      });
+    });
+    if (fd.risk_quality) {
+      document.querySelectorAll('#risk-quality .radio-btn').forEach(function(b) {
+        if (b.textContent.trim() === fd.risk_quality) b.classList.add('selected');
+      });
+    }
+    (fd.recommendations || []).forEach(function(r) { addRecommendation(r.title, r.text, r.priority); });
+    (fd.photo_paths || []).forEach(function(path, idx) {
+      var num = idx + 1;
+      if (num > photoCount) return;
+      const { data: urlData } = _supabase.storage.from('inspection-photos').getPublicUrl(path);
+      var img = document.getElementById('photo-' + num + '-img');
+      img.src = urlData.publicUrl;
+      img.classList.add('loaded');
+      img.setAttribute('data-storage-path', path);
+      document.getElementById('photo-' + num + '-wrap').classList.add('has-photo');
+    });
+    document.getElementById('page-sub').textContent = 'Editing — ' + (data.report_status || 'draft');
+    if (data.qa_reviewer || data.qa_notes) {
+      document.getElementById('qa-banner').style.display = 'block';
+      document.getElementById('qa-status-text').textContent = (data.report_status || '') + (data.qa_reviewer ? ' — reviewed by ' + data.qa_reviewer : '');
+      document.getElementById('qa-notes-text').textContent = data.qa_notes || '';
+    }
+  }
+
+  (async function init() {
+    const { data: { session } } = await _supabase.auth.getSession();
+    if (!session) { window.location.replace('/login.html'); return; }
+    currentUser = session.user;
+    buildPhotoGrid();
+    var params = new URLSearchParams(window.location.search);
+    var id = params.get('id');
+    if (id) await loadInspection(id);
+  })();
+</script>
+</body>
+</html>
