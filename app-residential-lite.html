@@ -386,13 +386,28 @@
     div.className = 'rec-item';
     div.id = 'rec-' + recCount;
     div.innerHTML =
-      '<div class="rec-item-header"><span class="rec-num">#' + recCount + '</span><button class="btn-del-rec" onclick="this.closest(\'.rec-item\').remove()">✕</button></div>' +
+      '<div class="rec-item-header"><span class="rec-num">#' + recCount + '</span><button class="btn-del-rec" onclick="removeRecommendation(this)">✕</button></div>' +
       '<div class="form-grid">' +
         '<div class="field full"><label>Title</label><input type="text" class="rec-title" value="' + (title ? title.replace(/"/g,'&quot;') : '') + '"></div>' +
         '<div class="field"><label>Priority</label><select class="rec-priority"><option' + (priority==='High'?' selected':'') + '>High</option><option' + (priority==='Medium'||!priority?' selected':'') + '>Medium</option><option' + (priority==='Low'?' selected':'') + '>Low</option></select></div>' +
         '<div class="field full"><label>Description</label><textarea class="rec-text">' + (text || '') + '</textarea></div>' +
       '</div>';
     document.getElementById('rec-list').appendChild(div);
+    renumberRecommendations();
+  }
+  // Labels reflect each recommendation's actual position in the list. The
+  // old label came from a running counter that never went back down when
+  // one was deleted, so a lone recommendation could show up as "#2".
+  function renumberRecommendations() {
+    document.querySelectorAll('#rec-list .rec-item').forEach(function(item, idx) {
+      var n = item.querySelector('.rec-num');
+      if (n) n.textContent = '#' + (idx + 1);
+    });
+  }
+  function removeRecommendation(btn) {
+    var item = btn.closest('.rec-item');
+    if (item) item.remove();
+    renumberRecommendations();
   }
 
   // ── Recommendations Library ──
