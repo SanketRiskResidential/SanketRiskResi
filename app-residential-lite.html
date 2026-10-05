@@ -231,9 +231,26 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Recommendations</div>
+      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+        Recommendations
+        <button class="btn-nav" style="color:var(--navy);border-color:var(--border);" onclick="openRecLibrary()">📋 Search Library</button>
+      </div>
       <div id="rec-list"></div>
       <button class="btn-add-rec" onclick="addRecommendation()">＋ Add Recommendation</button>
+    </div>
+
+    <!-- Recommendations Library modal -->
+    <div id="rec-library-overlay" style="display:none;position:fixed;inset:0;background:rgba(45,59,46,0.55);z-index:1000;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;">
+      <div style="background:#fff;border-radius:12px;max-width:640px;width:100%;max-height:85vh;display:flex;flex-direction:column;">
+        <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <div class="card-title" style="margin:0;padding:0;border:none;">Recommendations Library</div>
+          <button onclick="document.getElementById('rec-library-overlay').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--slate);">✕</button>
+        </div>
+        <div style="padding:14px 22px;border-bottom:1px solid var(--border);">
+          <input type="text" class="search-input-lib" id="rec-lib-search" placeholder="Search by topic — e.g. roof, smoke alarm, foundation…" oninput="renderRecLibrary()" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:13.5px;">
+        </div>
+        <div id="rec-lib-results" style="overflow-y:auto;padding:10px 22px 22px;"></div>
+      </div>
     </div>
 
     <div class="card" id="qa-review-card" style="display:none;">
@@ -373,6 +390,53 @@
       '</div>';
     document.getElementById('rec-list').appendChild(div);
   }
+
+  // ── Recommendations Library ──
+  var recLibraryData = [];
+  var recLibraryLoaded = false;
+  async function loadRecLibrary() {
+    if (recLibraryLoaded) return;
+    const { data, error } = await _supabase.from('recommendations').select('*').eq('active', true).order('category');
+    if (!error) { recLibraryData = data || []; recLibraryLoaded = true; }
+  }
+  async function openRecLibrary() {
+    await loadRecLibrary();
+    document.getElementById('rec-lib-search').value = '';
+    renderRecLibrary();
+    document.getElementById('rec-library-overlay').style.display = 'flex';
+  }
+  function renderRecLibrary() {
+    var q = (document.getElementById('rec-lib-search').value || '').toLowerCase();
+    var results = recLibraryData.filter(function(r) {
+      if (!q) return true;
+      var hay = ((r.title || '') + ' ' + (r.category || '') + ' ' + (r.subcategory || '') + ' ' + (r.rec_text || '')).toLowerCase();
+      return hay.indexOf(q) !== -1;
+    });
+    var container = document.getElementById('rec-lib-results');
+    if (!results.length) {
+      container.innerHTML = '<div style="padding:30px 0;text-align:center;color:var(--slate-light);font-size:13px;">No matching recommendations found.</div>';
+      return;
+    }
+    // Store the currently-rendered filtered list BEFORE building click
+    // handlers that reference it by index — search text could otherwise
+    // change between render and click, pointing an index at the wrong item.
+    window._recLibCurrentResults = results;
+    container.innerHTML = results.map(function(r, i) {
+      return '<div style="border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:10px;cursor:pointer;" onclick="insertRecFromLibrary(' + i + ')">' +
+        '<div style="font-size:10px;color:var(--slate);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">' + (r.category || '') + (r.subcategory ? ' — ' + r.subcategory : '') + '</div>' +
+        '<div style="font-weight:600;font-size:13.5px;margin-bottom:3px;">' + (r.title || '') + '</div>' +
+        '<div style="font-size:12px;color:var(--slate);">' + (r.rec_text || '').slice(0, 140) + ((r.rec_text || '').length > 140 ? '…' : '') + '</div>' +
+      '</div>';
+    }).join('');
+  }
+  function insertRecFromLibrary(idx) {
+    var r = window._recLibCurrentResults[idx];
+    if (!r) return;
+    addRecommendation(r.title, r.rec_text, r.priority);
+    document.getElementById('rec-library-overlay').style.display = 'none';
+    showToast('✓ Inserted: ' + r.title);
+  }
+
   function collectRecommendations() {
     var recs = [];
     document.querySelectorAll('#rec-list .rec-item').forEach(function(item) {
