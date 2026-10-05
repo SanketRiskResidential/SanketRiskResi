@@ -236,6 +236,18 @@
       <button class="btn-add-rec" onclick="addRecommendation()">＋ Add Recommendation</button>
     </div>
 
+    <div class="card" id="qa-review-card" style="display:none;">
+      <div class="card-title">QA Review</div>
+      <div class="form-grid" style="margin-bottom:14px;">
+        <div class="field"><label>Reviewer Name</label><input id="qa-reviewer-name" type="text" placeholder="Your name"></div>
+      </div>
+      <div class="field full" style="margin-bottom:16px;"><label>QA Notes</label><textarea id="qa-review-notes" placeholder="Notes for the inspector — required if returning for revision"></textarea></div>
+      <div class="action-bar" style="margin-top:0;">
+        <button class="btn-save" style="border-color:#C53030;color:#C53030;" onclick="qaDecision('returned')">Return for Revision</button>
+        <button class="btn-submit" style="background:#276749;" onclick="qaDecision('approved')">Approve</button>
+      </div>
+    </div>
+
     <div class="action-bar">
       <button class="btn-save" onclick="saveInspection('draft')">Save Draft</button>
       <button class="btn-submit" onclick="saveInspection('submitted')">Submit for QA Review</button>
@@ -431,6 +443,27 @@
     }
   }
 
+  async function qaDecision(decision) {
+    var reviewer = document.getElementById('qa-reviewer-name').value.trim();
+    var notes = document.getElementById('qa-review-notes').value.trim();
+    if (!reviewer) { showToast('⚠ Please enter the reviewer name.'); return; }
+    if (decision === 'returned' && !notes) { showToast('⚠ Please add notes explaining what needs revision.'); return; }
+    if (!confirm((decision === 'approved' ? 'Approve' : 'Return') + ' this inspection?')) return;
+    try {
+      const { error } = await _supabase.from('inspections').update({
+        report_status: decision,
+        qa_reviewer: reviewer,
+        qa_notes: notes,
+        qa_date: new Date().toISOString().slice(0, 10)
+      }).eq('id', currentInspectionId);
+      if (error) throw error;
+      showToast(decision === 'approved' ? '✓ Inspection approved' : '✓ Returned to inspector for revision');
+      setTimeout(function() { window.location.href = '/dashboard.html'; }, 1200);
+    } catch (e) {
+      showToast('⚠ Failed: ' + e.message);
+    }
+  }
+
   async function loadInspection(id) {
     const { data, error } = await _supabase.from('inspections').select('*').eq('id', id).single();
     if (error) { showToast('⚠ Failed to load: ' + error.message); return; }
@@ -477,9 +510,19 @@
       document.getElementById('photo-' + num + '-wrap').classList.add('has-photo');
     });
     document.getElementById('page-sub').textContent = 'Editing — ' + (data.report_status || 'draft');
-    if (data.qa_reviewer || data.qa_notes) {
+    var status = data.report_status || 'draft';
+    if (status === 'submitted' || status === 'inreview') {
+      // Awaiting a decision — show the active review card so a Supervisor
+      // opening this inspection can act on it directly. There's no
+      // separate reviewer-only login yet, so this is visible to anyone who
+      // opens a submitted inspection — a reasonable simplification for now,
+      // worth revisiting if/when real roles get built.
+      document.getElementById('qa-review-card').style.display = 'block';
+    } else if (data.qa_reviewer || data.qa_notes) {
+      // Already decided (approved or returned) — show the historical
+      // record read-only rather than the action card again.
       document.getElementById('qa-banner').style.display = 'block';
-      document.getElementById('qa-status-text').textContent = (data.report_status || '') + (data.qa_reviewer ? ' — reviewed by ' + data.qa_reviewer : '');
+      document.getElementById('qa-status-text').textContent = status + (data.qa_reviewer ? ' — reviewed by ' + data.qa_reviewer + (data.qa_date ? ' on ' + data.qa_date : '') : '');
       document.getElementById('qa-notes-text').textContent = data.qa_notes || '';
     }
   }
