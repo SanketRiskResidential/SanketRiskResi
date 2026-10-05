@@ -319,13 +319,22 @@
   }
   async function flushPendingPhotoUploads() {
     if (!currentInspectionId) return;
+    var failures = [];
     for (var num in pendingPhotoUploads) {
       var file = pendingPhotoUploads[num];
       var path = currentInspectionId + '/' + num + '-' + Date.now() + '.jpg';
       const { error } = await _supabase.storage.from('inspection-photos').upload(path, file, { upsert: true });
-      if (!error) document.getElementById('photo-' + num + '-img').setAttribute('data-storage-path', path);
+      if (!error) {
+        document.getElementById('photo-' + num + '-img').setAttribute('data-storage-path', path);
+      } else {
+        // Previously failed silently here — a photo could be lost with no
+        // indication anything went wrong. Now surfaced directly, since
+        // there's no console to check on a tablet.
+        failures.push('Photo ' + num + ': ' + error.message);
+      }
     }
     pendingPhotoUploads = {};
+    if (failures.length) showToast('⚠ ' + failures.length + ' photo(s) failed to upload — ' + failures[0]);
   }
   function collectPhotoPaths() {
     var paths = [];
