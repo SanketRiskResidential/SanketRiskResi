@@ -70,6 +70,8 @@
   .qa-banner strong { display: block; margin-bottom: 4px; }
   .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--navy); color: #fff; padding: 10px 22px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none; z-index: 9999; border-left: 3px solid var(--gold); }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .lock-banner { background: #FFF3E0; border: 1px solid #dd6b20; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; font-size: 13px; display: none; }
+  .readonly .card:not(#qa-review-card) { pointer-events: none; opacity: .8; }
   @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -77,6 +79,7 @@
   <nav class="topnav">
     <div class="nav-logo">Sanket<span>Risk</span> Home — Residential Lite</div>
     <div class="nav-right">
+      <button class="btn-nav" id="btn-view-report" style="display:none;" onclick="viewReport()">📄 Report</button>
       <button class="btn-nav" onclick="window.location.href='/dashboard.html'">← Dashboard</button>
     </div>
   </nav>
@@ -84,6 +87,12 @@
   <div class="main">
     <div class="page-title">Residential Lite Inspection</div>
     <div class="page-sub" id="page-sub">New inspection — not yet saved</div>
+
+    <div class="lock-banner" id="lock-banner"></div>
+    <div class="card" id="request-card" style="display:none;">
+      <div class="card-title">Request Details</div>
+      <div id="request-details" style="font-size:13px;line-height:1.6;"></div>
+    </div>
 
     <div class="qa-banner" id="qa-banner" style="display:none;">
       <strong>QA Status: <span id="qa-status-text"></span></strong>
@@ -268,7 +277,7 @@
     <button class="btn-nav" style="color:var(--navy);border-color:var(--navy);width:100%;padding:11px;margin-bottom:10px;" onclick="runAIPreReview()" id="btn-ai-prereview">🤖 AI Pre-Review — Check for Issues Before Submitting</button>
     <div id="ai-prereview-results" style="display:none;margin-bottom:14px;"></div>
 
-    <div class="action-bar">
+    <div class="action-bar" id="main-action-bar">
       <button class="btn-save" onclick="saveInspection('draft')">Save Draft</button>
       <button class="btn-submit" onclick="saveInspection('submitted')">Submit for QA Review</button>
     </div>
@@ -283,11 +292,20 @@
 
   var currentInspectionId = null;
   var currentStatus = 'draft'; // the status this inspection actually has right now
+  var myRole = 'none';
+  var myName = '';
   var currentUser = null;
   var recCount = 0;
   var photoCount = 6; // fixed number of photo slots for the Lite tier
   var pendingPhotoUploads = {}; // slot num -> File, flushed on save
 
+  // Text that came from the database (some typed by requestors) is escaped before
+  // being placed into the page as HTML.
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
   function showToast(msg) {
     var t = document.getElementById('toast');
     t.textContent = msg;
@@ -388,9 +406,9 @@
     div.innerHTML =
       '<div class="rec-item-header"><span class="rec-num">#' + recCount + '</span><button class="btn-del-rec" onclick="removeRecommendation(this)">✕</button></div>' +
       '<div class="form-grid">' +
-        '<div class="field full"><label>Title</label><input type="text" class="rec-title" value="' + (title ? title.replace(/"/g,'&quot;') : '') + '"></div>' +
+        '<div class="field full"><label>Title</label><input type="text" class="rec-title" value="' + esc(title) + '"></div>' +
         '<div class="field"><label>Priority</label><select class="rec-priority"><option' + (priority==='High'?' selected':'') + '>High</option><option' + (priority==='Medium'||!priority?' selected':'') + '>Medium</option><option' + (priority==='Low'?' selected':'') + '>Low</option></select></div>' +
-        '<div class="field full"><label>Description</label><textarea class="rec-text">' + (text || '') + '</textarea></div>' +
+        '<div class="field full"><label>Description</label><textarea class="rec-text">' + esc(text) + '</textarea></div>' +
       '</div>';
     document.getElementById('rec-list').appendChild(div);
     renumberRecommendations();
@@ -509,8 +527,8 @@
       sorted.forEach(function(f) {
         var color = sevColor[f.severity] || '#666';
         html += '<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);font-size:12.5px;">' +
-          '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;color:#fff;background:' + color + ';margin-right:6px;">' + (f.severity || 'Note') + '</span>' +
-          '<strong>' + (f.section || '') + (f.field ? ' — ' + f.field : '') + ':</strong> ' + (f.finding || '') +
+          '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;color:#fff;background:' + color + ';margin-right:6px;">' + esc(f.severity || 'Note') + '</span>' +
+          '<strong>' + esc(f.section || '') + (f.field ? ' — ' + esc(f.field) : '') + ':</strong> ' + esc(f.finding || '') +
           '</div>';
       });
     }
@@ -599,10 +617,10 @@
     // save (or the save AI Pre-Review does first) keeps whatever status it
     // already has — previously it forced 'draft', which silently undid a
     // QA approval whenever someone re-opened and saved an approved report.
-    var effectiveStatus = (targetStatus === 'draft' && currentStatus && currentStatus !== 'draft') ? currentStatus : targetStatus;
+    var effectiveStatus = (targetStatus === 'draft' && ['submitted','inreview','approved','returned'].indexOf(currentStatus) !== -1) ? currentStatus : targetStatus;
     const get = id => { var el = document.getElementById(id); return el ? el.value : ''; };
+    if (!currentInspectionId) { showToast('⚠ Open a job from the dashboard first — new jobs are created there.'); return; }
     var payload = {
-      inspection_type: 'residential_lite',
       insured_name: get('insured-name'),
       location: get('location'),
       city: get('city'),
@@ -611,22 +629,18 @@
       inspection_date: get('inspection-date') || null,
       inspector_name: get('inspector-name'),
       report_status: effectiveStatus,
-      form_data: collectFormData(),
-      user_id: currentUser ? currentUser.id : null,
-      user_email: currentUser ? currentUser.email : null
+      form_data: collectFormData()
     };
     try {
-      var result;
-      if (currentInspectionId) {
-        result = await _supabase.from('inspections').update(payload).eq('id', currentInspectionId).select();
-      } else {
-        result = await _supabase.from('inspections').insert(payload).select();
-      }
+      var result = await _supabase.from('inspections').update(payload).eq('id', currentInspectionId).select();
       if (result.error) throw result.error;
-      if (!currentInspectionId && result.data && result.data[0]) currentInspectionId = result.data[0].id;
+      // A save the access rules block comes back as "no error, zero rows" —
+      // without this check the page would say "Saved" when nothing was saved.
+      if (!result.data || !result.data.length) throw new Error('Nothing was saved — you may not have permission to edit this inspection right now.');
       await flushPendingPhotoUploads();
       // Re-save with any newly-uploaded photo paths now attached
-      await _supabase.from('inspections').update({ form_data: collectFormData() }).eq('id', currentInspectionId);
+      const second = await _supabase.from('inspections').update({ form_data: collectFormData() }).eq('id', currentInspectionId).select();
+      if (second.error) throw second.error;
       currentStatus = effectiveStatus;
       document.getElementById('page-sub').textContent = 'Saved — ' + (effectiveStatus === 'submitted' ? 'submitted for QA review' : effectiveStatus);
       showToast(targetStatus === 'submitted' ? '✓ Submitted for QA review' : (effectiveStatus === 'draft' ? '✓ Draft saved' : '✓ Saved (status stays ' + effectiveStatus + ')'));
@@ -653,13 +667,14 @@
     if (decision === 'returned' && !notes) { showToast('⚠ Please add notes explaining what needs revision.'); return; }
     if (!confirm((decision === 'approved' ? 'Approve' : 'Return') + ' this inspection?')) return;
     try {
-      const { error } = await _supabase.from('inspections').update({
+      const { data: decided, error } = await _supabase.from('inspections').update({
         report_status: decision,
         qa_reviewer: reviewer,
         qa_notes: notes,
         qa_date: new Date().toISOString().slice(0, 10)
-      }).eq('id', currentInspectionId);
+      }).eq('id', currentInspectionId).select();
       if (error) throw error;
+      if (!decided || !decided.length) throw new Error('Not saved — you may not be the accepted reviewer for this job.');
       showToast(decision === 'approved' ? '✓ Inspection approved' : '✓ Returned to inspector for revision');
       setTimeout(function() { window.location.href = '/dashboard.html'; }, 1200);
     } catch (e) {
@@ -714,32 +729,72 @@
       document.getElementById('photo-' + num + '-wrap').classList.add('has-photo');
     });
     document.getElementById('page-sub').textContent = 'Editing — ' + (data.report_status || 'draft');
-    var status = data.report_status || 'draft';
-    if (status === 'submitted' || status === 'inreview') {
-      // Awaiting a decision — show the active review card so a Supervisor
-      // opening this inspection can act on it directly. There's no
-      // separate reviewer-only login yet, so this is visible to anyone who
-      // opens a submitted inspection — a reasonable simplification for now,
-      // worth revisiting if/when real roles get built.
-      document.getElementById('qa-review-card').style.display = 'block';
-      if (data.ai_review_supervisor) renderAIReviewFindings(data.ai_review_supervisor, 'qa-review-card', true);
-    } else if (data.qa_reviewer || data.qa_notes) {
-      // Already decided (approved or returned) — show the historical
-      // record read-only rather than the action card again.
-      document.getElementById('qa-banner').style.display = 'block';
-      document.getElementById('qa-status-text').textContent = status + (data.qa_reviewer ? ' — reviewed by ' + data.qa_reviewer + (data.qa_date ? ' on ' + data.qa_date : '') : '');
-      document.getElementById('qa-notes-text').textContent = data.qa_notes || '';
+    applyRoleUI(data);
+  }
+
+  // What this person may see and do on this particular job. The database
+  // enforces the same rules — this just makes the page match them.
+  function applyRoleUI(job) {
+    var status = job.report_status || 'draft';
+    var readonly = false, msg = '';
+    document.getElementById('btn-view-report').style.display = 'inline-block';
+
+    if (job.requestor_notes || job.contact_phone) {
+      document.getElementById('request-card').style.display = 'block';
+      document.getElementById('request-details').innerHTML =
+        (job.contact_phone ? '<strong>Contact phone:</strong> ' + esc(job.contact_phone) + '<br>' : '') +
+        (job.requestor_notes ? '<strong>Notes from the requestor:</strong> ' + esc(job.requestor_notes) : '');
     }
+
+    if (myRole === 'inspector') {
+      if (job.inspector_status !== 'accepted') { readonly = true; msg = 'Please accept this job on your dashboard before working on it.'; }
+      else if (['submitted', 'inreview', 'approved'].indexOf(status) !== -1) { readonly = true; msg = 'This inspection is locked while it is with QA or approved.'; }
+    } else if (myRole === 'reviewer') {
+      readonly = true; // reviewers never edit the inspection itself
+      if (job.reviewer_status !== 'accepted') msg = 'Please accept this review on your dashboard before deciding.';
+      else if (status !== 'submitted' && status !== 'inreview') msg = 'This inspection is not awaiting a QA decision.';
+      else msg = 'You are reviewing this inspection. The form is read-only — record your decision in the QA Review box below.';
+    }
+    if (readonly) {
+      document.querySelector('.main').classList.add('readonly');
+      document.getElementById('main-action-bar').style.display = 'none';
+      document.getElementById('btn-ai-prereview').style.display = 'none';
+    }
+    if (msg) { var b = document.getElementById('lock-banner'); b.textContent = msg; b.style.display = 'block'; }
+
+    var awaitingDecision = (status === 'submitted' || status === 'inreview');
+    var canDecide = awaitingDecision && (myRole === 'admin' || (myRole === 'reviewer' && job.reviewer_status === 'accepted'));
+    if (canDecide) {
+      // Reviewers (and admin) get the decision box, plus the independent AI pass.
+      document.getElementById('qa-review-card').style.display = 'block';
+      var nameEl = document.getElementById('qa-reviewer-name');
+      nameEl.value = myName; nameEl.readOnly = true;
+      if (job.ai_review_supervisor) renderAIReviewFindings(job.ai_review_supervisor, 'qa-review-card', true);
+    } else if (!awaitingDecision && (job.qa_reviewer || job.qa_notes)) {
+      // Already decided — show the historical record read-only.
+      document.getElementById('qa-banner').style.display = 'block';
+      document.getElementById('qa-status-text').textContent = status + (job.qa_reviewer ? ' — reviewed by ' + job.qa_reviewer + (job.qa_date ? ' on ' + job.qa_date : '') : '');
+      document.getElementById('qa-notes-text').textContent = job.qa_notes || '';
+    }
+  }
+
+  function viewReport() {
+    window.open('/report-residential-lite.html?id=' + encodeURIComponent(currentInspectionId), '_blank');
   }
 
   (async function init() {
     const { data: { session } } = await _supabase.auth.getSession();
     if (!session) { window.location.replace('/login.html'); return; }
     currentUser = session.user;
+    const { data: prof } = await _supabase.from('profiles').select('role, full_name, email').eq('id', currentUser.id).maybeSingle();
+    myRole = (prof && prof.role) || 'none';
+    myName = (prof && (prof.full_name || prof.email)) || currentUser.email || '';
+    // Only staff use this form; requestors and not-yet-activated logins belong on the dashboard.
+    if (['admin', 'inspector', 'reviewer'].indexOf(myRole) === -1) { window.location.replace('/dashboard.html'); return; }
+    var id = new URLSearchParams(window.location.search).get('id');
+    if (!id) { window.location.replace('/dashboard.html'); return; }
     buildPhotoGrid();
-    var params = new URLSearchParams(window.location.search);
-    var id = params.get('id');
-    if (id) await loadInspection(id);
+    await loadInspection(id);
   })();
 </script>
 </body>
