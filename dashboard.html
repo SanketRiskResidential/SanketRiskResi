@@ -80,6 +80,8 @@
   .s-returned   { background: #FEE2E2; color: #C53030; }
   .s-released   { background: #C6F6D5; color: #22543D; }
   .s-client     { background: #EDF2F7; color: #2d3b2e; }
+  .td-ref { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--slate); margin-right: 6px; }
+  .urgent-tag { background: #C53030; color: #fff; font-size: 9px; font-weight: 700; letter-spacing: .08em; padding: 1px 7px; border-radius: 10px; margin-left: 7px; vertical-align: middle; }
   .btn-sm { background: none; border: 1px solid var(--border); color: var(--slate); border-radius: 6px; padding: 5px 10px; font-size: 11px; font-family: inherit; cursor: pointer; margin: 1px 2px 1px 0; white-space: nowrap; }
   .btn-sm:hover { border-color: var(--navy); color: var(--navy); background: var(--bg); }
   .btn-sm.good { background: #276749; border-color: #276749; color: #fff; }
@@ -295,8 +297,11 @@
     });
   }
   function propertyCell(r) {
-    return '<div class="td-name">' + esc(r.insured_name || 'Untitled') + '</div>' +
-           '<div class="td-sub">' + esc([r.location, r.city].filter(Boolean).join(', ')) + '</div>';
+    var d = r.request_details || {};
+    var urgent = d.urgency === 'Urgent' ? '<span class="urgent-tag">URGENT</span>' : '';
+    var ref = r.request_ref ? '<span class="td-ref">' + esc(r.request_ref) + '</span>' : '';
+    return '<div class="td-name">' + esc(r.insured_name || 'Untitled') + urgent + '</div>' +
+           '<div class="td-sub">' + ref + esc([r.location, r.city].filter(Boolean).join(', ')) + '</div>';
   }
 
   // ADMIN
@@ -313,10 +318,12 @@
     ]);
     html += '<div class="tabs">' +
       '<button class="tab ' + (activeTab === 'jobs' ? 'active' : '') + '" onclick="setTab(\'jobs\')">Jobs</button>' +
-      '<button class="tab ' + (activeTab === 'users' ? 'active' : '') + '" onclick="setTab(\'users\')">Users' + (pendingUsers ? ' (' + pendingUsers + ' pending)' : '') + '</button></div>';
-    html += activeTab === 'users' ? usersTableHtml() : adminJobsHtml();
+      '<button class="tab ' + (activeTab === 'users' ? 'active' : '') + '" onclick="setTab(\'users\')">Users' + (pendingUsers ? ' (' + pendingUsers + ' pending)' : '') + '</button>' +
+      '<button class="tab ' + (activeTab === 'request' ? 'active' : '') + '" onclick="setTab(\'request\')">Request Page</button></div>';
+    html += activeTab === 'users' ? usersTableHtml() : activeTab === 'request' ? requestTabHtml() : adminJobsHtml();
     document.getElementById('content').innerHTML = html;
     if (activeTab === 'jobs') renderAdminRows();
+    if (activeTab === 'request') loadRequestSettings();
   }
   function setTab(t) { activeTab = t; renderAdmin(); }
 
@@ -410,6 +417,47 @@
     if (error) { showToast('⚠ ' + error.message); return; }
     showToast('✓ Job deleted');
     loadJobs();
+  }
+
+  // REQUEST PAGE settings (admin)
+  function requestTabHtml() {
+    var link = window.location.origin + '/request';
+    return '<div class="table-card"><div class="help-note">Clients who have the access code can submit a request on this page without a login. Each request arrives in your Jobs list as <strong>Needs assignment</strong>. The code is stored securely and can\'t be shown again — if it\'s forgotten, just set a new one.</div>' +
+      '<div style="padding:20px 22px;">' +
+      '<div class="m-field full" style="margin-bottom:16px;"><label>Request page link (share it together with the code)</label><div style="display:flex;gap:8px;"><input id="rq-link" readonly value="' + esc(link) + '" style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:13px;background:var(--bg);"><button class="btn-sm" onclick="copyRequestLink()">Copy</button></div></div>' +
+      '<div class="m-grid">' +
+        '<div class="m-field"><label>Page status</label><select id="rq-enabled"><option value="true">Open</option><option value="false">Closed</option></select></div>' +
+        '<div class="m-field"><label>Set a new access code</label><input id="rq-code" type="text" autocomplete="off" placeholder="at least 6 characters"></div>' +
+      '</div>' +
+      '<div id="rq-stats" style="font-size:12.5px;color:var(--slate);margin:14px 0 4px;line-height:1.7;">Loading…</div>' +
+      '<div class="m-actions"><button class="btn-primary" onclick="saveRequestSettings()">Save</button></div></div></div>';
+  }
+  async function loadRequestSettings() {
+    const { data, error } = await _supabase.rpc('get_request_settings');
+    var st = document.getElementById('rq-stats');
+    if (!st) return;
+    if (error) { st.textContent = '⚠ ' + error.message; return; }
+    document.getElementById('rq-enabled').value = data.enabled ? 'true' : 'false';
+    st.innerHTML = (data.code_set ? '✓ An access code is set.' : '<strong style="color:#C53030;">No access code is set yet — the page stays closed until you set one.</strong>') +
+      '<br>Requests received in the last 24 hours: <strong>' + esc(data.submissions_24h) + '</strong> · Wrong codes entered in the last 24 hours: <strong>' + esc(data.wrong_codes_24h) + '</strong>';
+  }
+  async function saveRequestSettings() {
+    var code = document.getElementById('rq-code').value.trim();
+    var args = { p_enabled: document.getElementById('rq-enabled').value === 'true' };
+    if (code) args.p_code = code;
+    const { error } = await _supabase.rpc('set_request_settings', args);
+    if (error) { showToast('⚠ ' + error.message); return; }
+    document.getElementById('rq-code').value = '';
+    showToast(code ? '✓ New access code saved' : '✓ Settings saved');
+    loadRequestSettings();
+  }
+  function copyRequestLink() {
+    var el = document.getElementById('rq-link');
+    el.select();
+    try {
+      if (navigator.clipboard) navigator.clipboard.writeText(el.value); else document.execCommand('copy');
+      showToast('✓ Link copied');
+    } catch (e) { showToast('Press and hold the link to copy it.'); }
   }
 
   // INSPECTOR / REVIEWER
@@ -545,9 +593,18 @@
     var det = document.getElementById('log-details');
     if (r && myRole !== 'requestor') {
       var lines = [];
+      var d = r.request_details || {};
+      if (r.request_ref) lines.push('<strong>Reference:</strong> ' + esc(r.request_ref));
       if (r.requestor_id) lines.push('<strong>Requestor:</strong> ' + esc(personName(r.requestor_id) || 'on file'));
+      if (d.requestor_name) lines.push('<strong>Requested by:</strong> ' + esc(d.requestor_name) + (d.company ? ' (' + esc(d.company) + ')' : '') + (d.role ? ' — ' + esc(d.role) : ''));
+      if (d.email) lines.push('<strong>Email:</strong> ' + esc(d.email));
       if (r.contact_phone) lines.push('<strong>Phone:</strong> ' + esc(r.contact_phone));
-      if (r.requestor_notes) lines.push('<strong>Request notes:</strong> ' + esc(r.requestor_notes));
+      if (d.purpose) lines.push('<strong>Reason:</strong> ' + esc(d.purpose) + (d.policy_number ? ' · Policy ' + esc(d.policy_number) : ''));
+      if (d.preferred_date || d.preferred_time) lines.push('<strong>Preferred visit:</strong> ' + esc([d.preferred_date, d.preferred_time].filter(Boolean).join(' · ')));
+      if (d.urgency) lines.push('<strong>Urgency:</strong> ' + esc(d.urgency));
+      if (d.site_contact) lines.push('<strong>Contact at property:</strong> ' + esc(d.site_contact));
+      if (r.requestor_notes) lines.push('<strong>Access notes / instructions:</strong> ' + esc(r.requestor_notes));
+      if (d.comments) lines.push('<strong>Comments:</strong> ' + esc(d.comments));
       det.innerHTML = lines.join('<br>'); det.style.display = lines.length ? 'block' : 'none';
     } else { det.style.display = 'none'; }
     document.getElementById('log-add').style.display = myRole === 'requestor' ? 'none' : 'block';
