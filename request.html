@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Request an Inspection — SanketRisk Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy:       #2d3b2e;
+    --navy-mid:   #3d4f3f;
+    --gold:       #c17a56;
+    --gold-pale:  #f3e2d6;
+    --slate:      #6b5d52;
+    --slate-light:#a69686;
+    --border:     #ddd2c4;
+    --bg:         #f7f4ef;
+  }
+  html, body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--navy); font-size: 14px; line-height: 1.5; }
+  .topbar { background: var(--navy); border-bottom: 2px solid var(--gold); padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+  .topbar .icon { width: 32px; height: 32px; background: var(--gold); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+  .topbar .name { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: #fff; }
+  .topbar .name span { color: var(--gold); }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 28px 18px 70px; }
+  h1 { font-family: 'Playfair Display', serif; font-size: 26px; margin-bottom: 6px; }
+  .lead { color: var(--slate); margin-bottom: 22px; }
+  .card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 22px; margin-bottom: 18px; }
+  .card h2 { font-family: 'Playfair Display', serif; font-size: 16px; margin-bottom: 14px; padding-bottom: 9px; border-bottom: 1px solid var(--border); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field { display: flex; flex-direction: column; }
+  .field.full { grid-column: 1 / -1; }
+  label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--slate); margin-bottom: 5px; }
+  label .req { color: #c53030; }
+  input, select, textarea { padding: 10px 11px; border: 1px solid var(--border); border-radius: 7px; font-size: 14px; font-family: inherit; background: var(--bg); color: var(--navy); width: 100%; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--gold); }
+  textarea { min-height: 84px; resize: vertical; }
+  .hint { font-size: 12px; color: var(--slate); margin-top: 4px; }
+  .gate-row { display: flex; gap: 10px; }
+  .btn { background: var(--navy); color: #fff; border: none; border-radius: 8px; padding: 11px 22px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .btn:hover { background: var(--navy-mid); }
+  .btn:disabled { opacity: .6; cursor: not-allowed; }
+  .btn.big { width: 100%; padding: 14px; font-size: 15px; background: var(--gold); }
+  .err { color: #b3261e; font-size: 13px; margin-top: 10px; display: none; line-height: 1.4; }
+  .success { text-align: center; padding: 34px 22px; }
+  .success .tick { width: 56px; height: 56px; border-radius: 50%; background: #276749; color: #fff; font-size: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+  .success .ref { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; background: var(--gold-pale); border: 1px dashed var(--gold); border-radius: 8px; padding: 10px 18px; display: inline-block; margin: 12px 0; }
+  .hp { position: absolute; left: -5000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } .gate-row { flex-direction: column; } }
+</style>
+</head>
+<body>
+  <div class="topbar"><div class="icon">🏠</div><div class="name">Sanket<span>Risk</span> Home</div></div>
+  <div class="wrap">
+    <h1>Request an Inspection</h1>
+    <p class="lead">Tell us about the property and we will arrange the inspection.</p>
+
+    <!-- Step 1: access code -->
+    <div class="card" id="gate">
+      <h2>🔑 Access code</h2>
+      <p style="color:var(--slate);margin-bottom:12px;">Please enter the access code provided by your representative to continue.</p>
+      <div class="gate-row">
+        <input type="text" id="code" placeholder="Enter access code" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="btn" id="gate-btn" onclick="verifyCode()">Continue →</button>
+      </div>
+      <div class="err" id="gate-err"></div>
+    </div>
+
+    <!-- Step 2: the request -->
+    <div id="form-wrap" style="display:none;">
+      <div class="card">
+        <h2>About you</h2>
+        <div class="grid">
+          <div class="field"><label>Your name <span class="req">*</span></label><input id="requestor_name" type="text" autocomplete="name"></div>
+          <div class="field"><label>Company / organization</label><input id="company" type="text" autocomplete="organization"></div>
+          <div class="field"><label>Email <span class="req">*</span></label><input id="email" type="email" autocomplete="email"></div>
+          <div class="field"><label>Phone <span class="req">*</span></label><input id="phone" type="tel" autocomplete="tel"></div>
+          <div class="field full">
+            <label>Your role</label>
+            <select id="role">
+              <option value="">— Select —</option>
+              <option>Insurance broker</option>
+              <option>Insurance company</option>
+              <option>Property owner</option>
+              <option>Property manager</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>The property</h2>
+        <div class="grid">
+          <div class="field full"><label>Property owner / insured name <span class="req">*</span></label><input id="insured_name" type="text"></div>
+          <div class="field full"><label>Street address <span class="req">*</span></label><input id="location" type="text" autocomplete="street-address"></div>
+          <div class="field"><label>City <span class="req">*</span></label><input id="city" type="text" autocomplete="address-level2"></div>
+          <div class="field"><label>Province / state <span class="req">*</span></label><input id="province_state" type="text" autocomplete="address-level1"></div>
+          <div class="field"><label>Postal / ZIP code</label><input id="postal_code" type="text" autocomplete="postal-code"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>The inspection</h2>
+        <div class="grid">
+          <div class="field">
+            <label>Reason for inspection</label>
+            <select id="purpose">
+              <option value="">— Select —</option>
+              <option>New business</option>
+              <option>Renewal</option>
+              <option>Claim-related</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field"><label>Policy number (if any)</label><input id="policy_number" type="text"></div>
+          <div class="field"><label>Preferred date</label><input id="preferred_date" type="date"></div>
+          <div class="field">
+            <label>Preferred time</label>
+            <select id="preferred_time">
+              <option value="">No preference</option>
+              <option>Morning</option>
+              <option>Afternoon</option>
+              <option>Evening</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Urgency</label>
+            <select id="urgency">
+              <option>Standard</option>
+              <option>Urgent</option>
+            </select>
+          </div>
+          <div class="field"><label>Contact at the property (name &amp; phone)</label><input id="site_contact" type="text"></div>
+          <div class="field full">
+            <label>Access notes / special instructions</label>
+            <textarea id="special_instructions" placeholder="Gate codes, pets, best times to call, anything the inspector should know…"></textarea>
+          </div>
+          <div class="field full"><label>Additional comments</label><textarea id="comments"></textarea></div>
+        </div>
+      </div>
+
+      <!-- honeypot: invisible to people, tempting to bots -->
+      <div class="hp" aria-hidden="true"><label>Leave this empty</label><input type="text" id="website" tabindex="-1" autocomplete="off"></div>
+
+      <div class="err" id="form-err" style="margin-bottom:12px;"></div>
+      <button class="btn big" id="submit-btn" onclick="submitRequest()">Submit Inspection Request →</button>
+    </div>
+
+    <!-- Step 3: done -->
+    <div class="card success" id="success" style="display:none;">
+      <div class="tick">✓</div>
+      <h2 style="border:none;margin-bottom:6px;">Request received</h2>
+      <p style="color:var(--slate);">Thank you. Please keep this reference number for any follow-up:</p>
+      <div class="ref" id="ref"></div>
+      <p style="color:var(--slate);margin-bottom:18px;">We will contact you to confirm the appointment.</p>
+      <button class="btn" onclick="another()">Submit another request</button>
+    </div>
+  </div>
+
+<script>
+  const SUPABASE_URL = 'https://lkihphmtyusqmnhbfswq.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_X7JifOrQKvkCwGD7DQpPZg_-6jB5j3Z';
+  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Held in memory only (never stored), and checked again by the server on submit.
+  var verifiedCode = null;
+
+  function show(id, on) { document.getElementById(id).style.display = on ? 'block' : 'none'; }
+  function setErr(id, msg) { var e = document.getElementById(id); e.textContent = msg || ''; e.style.display = msg ? 'block' : 'none'; }
+  function val(id) { return (document.getElementById(id).value || '').trim(); }
+
+  async function verifyCode() {
+    var code = document.getElementById('code').value.trim();
+    var btn = document.getElementById('gate-btn');
+    setErr('gate-err', '');
+    if (!code) { setErr('gate-err', 'Please enter the access code.'); return; }
+    btn.disabled = true; btn.textContent = 'Checking…';
+    try {
+      // The code is checked by the server, which also limits repeated wrong guesses.
+      const { data, error } = await _supabase.rpc('check_request_code', { p_code: code });
+      if (error) throw error;
+      if (!data || !data.ok) { setErr('gate-err', (data && data.error) || 'That code was not accepted.'); return; }
+      verifiedCode = code;
+      show('gate', false); show('form-wrap', true);
+      var d = document.getElementById('preferred_date'); d.min = new Date().toISOString().slice(0, 10);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e) {
+      setErr('gate-err', 'We could not check the code just now. Please check your connection and try again.');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Continue →';
+    }
+  }
+
+  async function submitRequest() {
+    setErr('form-err', '');
+    // Bots fill the invisible field; people never see it. Pretend it worked.
+    if (document.getElementById('website').value) { showDone('RH-0000-0000'); return; }
+    var required = [['requestor_name', 'your name'], ['email', 'your email'], ['phone', 'your phone number'],
+                    ['insured_name', "the owner's name"], ['location', 'the street address'], ['city', 'the city'], ['province_state', 'the province or state']];
+    for (var i = 0; i < required.length; i++) {
+      if (!val(required[i][0])) { setErr('form-err', 'Please enter ' + required[i][1] + '.'); document.getElementById(required[i][0]).focus(); return; }
+    }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val('email'))) { setErr('form-err', 'Please enter a valid email address.'); document.getElementById('email').focus(); return; }
+
+    var data = {};
+    ['requestor_name','company','email','phone','role','insured_name','location','city','province_state','postal_code','purpose','policy_number',
+     'preferred_date','preferred_time','urgency','site_contact','special_instructions','comments'].forEach(function(k) { data[k] = val(k); });
+
+    var btn = document.getElementById('submit-btn');
+    btn.disabled = true; btn.textContent = 'Submitting…';
+    try {
+      const { data: res, error } = await _supabase.rpc('submit_public_request', { p_code: verifiedCode, p_data: data });
+      if (error) throw error;
+      if (!res || !res.ok) {
+        var msg = (res && res.error) || 'Your request could not be submitted.';
+        setErr('form-err', msg);
+        // If the code was changed or the page closed while the form was open, go back to the start.
+        if (/access code|not open|locked|Too many incorrect/i.test(msg)) { verifiedCode = null; show('form-wrap', false); show('gate', true); setErr('gate-err', msg); }
+        btn.disabled = false; btn.textContent = 'Submit Inspection Request →';
+        return;
+      }
+      showDone(res.ref);
+    } catch (e) {
+      setErr('form-err', 'We could not send your request just now. Please check your connection and try again — nothing has been lost.');
+      btn.disabled = false; btn.textContent = 'Submit Inspection Request →';
+    }
+  }
+
+  function showDone(ref) {
+    document.getElementById('ref').textContent = ref;
+    show('form-wrap', false); show('success', true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function another() {
+    document.querySelectorAll('#form-wrap input, #form-wrap textarea').forEach(function(el) { el.value = ''; });
+    document.querySelectorAll('#form-wrap select').forEach(function(el) { el.selectedIndex = 0; });
+    var b = document.getElementById('submit-btn'); b.disabled = false; b.textContent = 'Submit Inspection Request →';
+    setErr('form-err', ''); show('success', false); show('form-wrap', true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  document.getElementById('code').addEventListener('keydown', function(e) { if (e.key === 'Enter') verifyCode(); });
+</script>
+</body>
+</html>
