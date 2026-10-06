@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Residential Inspection Report — SanketRisk Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy:       #2d3b2e;
+    --navy-mid:   #3d4f3f;
+    --gold:       #c17a56;
+    --gold-pale:  #f3e2d6;
+    --slate:      #6b5d52;
+    --slate-light:#a69686;
+    --border:     #ddd2c4;
+    --bg:         #f7f4ef;
+  }
+  html, body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--navy); font-size: 14px; line-height: 1.55; }
+  .toolbar { background: var(--navy); padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gold); }
+  .toolbar .brand { font-family: 'Playfair Display', serif; color: #fff; font-weight: 700; }
+  .toolbar .brand span { color: var(--gold); }
+  .btn { background: var(--gold); color: #fff; border: none; border-radius: 7px; padding: 8px 18px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .btn.ghost { background: none; border: 1px solid rgba(255,255,255,.3); margin-right: 8px; }
+  .page { max-width: 860px; margin: 24px auto; background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 44px 48px; }
+  .preview-banner { background: #FFF3E0; border: 1px solid #dd6b20; color: #7c3a0c; border-radius: 6px; padding: 10px 14px; margin-bottom: 22px; font-size: 13px; font-weight: 600; }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid var(--gold); padding-bottom: 16px; margin-bottom: 22px; }
+  .head h1 { font-family: 'Playfair Display', serif; font-size: 26px; line-height: 1.2; }
+  .head .sub { color: var(--slate); font-size: 13px; margin-top: 4px; }
+  .head .logo { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 18px; text-align: right; }
+  .head .logo span { color: var(--gold); }
+  .risk { display: flex; align-items: center; justify-content: space-between; background: var(--gold-pale); border: 1px solid var(--gold); border-radius: 8px; padding: 14px 18px; margin-bottom: 26px; }
+  .risk .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--slate); font-weight: 600; }
+  .risk .val { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; }
+  h2 { font-family: 'Playfair Display', serif; font-size: 17px; margin: 26px 0 10px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 30px; }
+  .row { display: flex; justify-content: space-between; gap: 14px; padding: 6px 0; border-bottom: 1px dotted var(--border); }
+  .row .k { color: var(--slate); font-size: 12.5px; }
+  .row .v { font-weight: 600; text-align: right; }
+  .full { grid-column: 1 / -1; }
+  .note { background: var(--bg); border-radius: 6px; padding: 10px 12px; margin-top: 10px; font-size: 13px; white-space: pre-wrap; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 12.5px; background: var(--bg); }
+  .rec { border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; margin-bottom: 10px; break-inside: avoid; page-break-inside: avoid; }
+  .rec .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+  .rec .title { font-weight: 700; }
+  .pill { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 2px 9px; border-radius: 20px; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; }
+  .p-High { background: #FEE2E2; color: #C53030; }
+  .p-Medium { background: #FFF3E0; color: #C05621; }
+  .p-Low { background: #E6F2EA; color: #2f6b45; }
+  .rec .body { font-size: 13px; color: #3c3c3c; white-space: pre-wrap; }
+  .photos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .photos figure { break-inside: avoid; page-break-inside: avoid; }
+  .photos img { width: 100%; border: 1px solid var(--border); border-radius: 6px; display: block; }
+  .photos figcaption { font-size: 11.5px; color: var(--slate); margin-top: 3px; }
+  .foot { margin-top: 34px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--slate); display: flex; justify-content: space-between; }
+  .msg { max-width: 560px; margin: 60px auto; background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 32px; text-align: center; }
+  @media (max-width: 700px) { .page { padding: 24px 18px; margin: 0; border: none; border-radius: 0; } .grid, .photos { grid-template-columns: 1fr; } .head { flex-direction: column; gap: 10px; } .head .logo { text-align: left; } }
+  @media print {
+    body { background: #fff; }
+    .toolbar { display: none; }
+    .page { border: none; margin: 0; padding: 0; max-width: none; }
+    @page { margin: 16mm; }
+  }
+</style>
+</head>
+<body>
+  <div class="toolbar no-print">
+    <div class="brand">Sanket<span>Risk</span> Home</div>
+    <div>
+      <button class="btn ghost" onclick="window.close(); window.location.href='/dashboard.html'">← Back</button>
+      <button class="btn" onclick="window.print()">Download / Print (Save as PDF)</button>
+    </div>
+  </div>
+  <div id="root"><div class="msg">Loading report…</div></div>
+
+<script>
+  const SUPABASE_URL = 'https://lkihphmtyusqmnhbfswq.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_X7JifOrQKvkCwGD7DQpPZg_-6jB5j3Z';
+  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  var TYPE_LABELS = { residential_lite: 'Residential Lite', residential_full: 'Residential (Full)', exterior: 'Exterior', interior_exterior: 'Interior / Exterior' };
+
+  // Everything is escaped before going into the page.
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function val(v) { return (v === null || v === undefined || v === '') ? '—' : esc(v); }
+  function row(k, v, full) { return '<div class="row' + (full ? ' full' : '') + '"><span class="k">' + esc(k) + '</span><span class="v">' + val(v) + '</span></div>'; }
+  function fmtDate(d) { if (!d) return '—'; var x = new Date(d.length === 10 ? d + 'T12:00:00' : d); return isNaN(x) ? String(d) : x.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }); }
+
+  function render(r) {
+    var f = r.form_data || {};
+    var address = [r.location, r.city, r.province_state, r.postal_code].filter(Boolean).join(', ');
+    var html = '<div class="page">';
+    if (!r.released_at) {
+      html += '<div class="preview-banner">DRAFT PREVIEW — this report has not been released to the requestor and may still change.</div>';
+    }
+    html += '<div class="head"><div><h1>Residential Inspection Report</h1><div class="sub">' + esc(TYPE_LABELS[r.inspection_type] || 'Residential') + ' inspection</div></div>' +
+            '<div class="logo">Sanket<span>Risk</span> Home</div></div>';
+    if (f.risk_quality) {
+      html += '<div class="risk"><div><div class="lbl">Risk Quality Rating</div><div class="val">' + esc(f.risk_quality) + '</div></div>' +
+              '<div style="text-align:right"><div class="lbl">Overall Condition</div><div class="val" style="font-size:18px;">' + val(f.overall_condition) + '</div></div></div>';
+    }
+
+    html += '<h2>Property &amp; Inspection</h2><div class="grid">' +
+      row('Owner / Insured', r.insured_name) + row('Inspection date', fmtDate(r.inspection_date)) +
+      row('Property address', address, true) + row('Inspector', r.inspector_name) + row('Report released', r.released_at ? fmtDate(r.released_at) : 'Not yet') + '</div>';
+
+    html += '<h2>Building</h2><div class="grid">' +
+      row('Year built', f.year_built) + row('Approx. square footage', f.square_footage ? Number(f.square_footage).toLocaleString() + ' sq ft' : '') +
+      row('Number of storeys', f.storeys) + row('Foundation', f.foundation_type) + '</div>';
+
+    html += '<h2>Roof</h2><div class="grid">' + row('Type / material', f.roof_type) + row('Age', f.roof_age_status) + row('Condition', f.roof_condition) + '</div>';
+    html += '<h2>Exterior</h2><div class="grid">' + row('Siding / cladding', f.siding_material) + row('Condition', f.exterior_condition) + '</div>';
+
+    var hz = f.site_hazards || [];
+    html += '<h2>Site Hazards</h2>' + (hz.length ? '<div class="chips">' + hz.map(function(h) { return '<span class="chip">' + esc(h) + '</span>'; }).join('') + '</div>' : '<div style="color:var(--slate);">None recorded.</div>');
+    if (f.hazard_notes) html += '<div class="note">' + esc(f.hazard_notes) + '</div>';
+
+    var recs = f.recommendations || [];
+    html += '<h2>Recommendations</h2>';
+    if (!recs.length) html += '<div style="color:var(--slate);">No recommendations were recorded.</div>';
+    recs.forEach(function(rec, i) {
+      var pr = ['High', 'Medium', 'Low'].indexOf(rec.priority) !== -1 ? rec.priority : 'Medium';
+      html += '<div class="rec"><div class="top"><span class="title">' + (i + 1) + '. ' + val(rec.title) + '</span><span class="pill p-' + pr + '">' + pr + ' priority</span></div>' +
+              '<div class="body">' + esc(rec.text || '') + '</div></div>';
+    });
+
+    var photos = f.photo_paths || [];
+    if (photos.length) {
+      html += '<h2>Photographs</h2><div class="photos">' + photos.map(function(path, i) {
+        var u = _supabase.storage.from('inspection-photos').getPublicUrl(path).data.publicUrl;
+        return '<figure><img src="' + esc(u) + '" alt="Photo ' + (i + 1) + '"><figcaption>Photo ' + (i + 1) + '</figcaption></figure>';
+      }).join('') + '</div>';
+    }
+
+    html += '<div class="foot"><span>Generated ' + esc(new Date().toLocaleDateString()) + '</span><span>Report ID ' + esc(String(r.id).slice(0, 8)) + '</span></div></div>';
+    document.getElementById('root').innerHTML = html;
+    document.title = 'Inspection Report — ' + (r.insured_name || 'Residential');
+  }
+
+  (async function init() {
+    var root = document.getElementById('root');
+    const { data: { session } } = await _supabase.auth.getSession();
+    if (!session) { window.location.replace('/login.html'); return; }
+    var id = new URLSearchParams(window.location.search).get('id');
+    if (!id) { root.innerHTML = '<div class="msg">No report specified.</div>'; return; }
+    const { data, error } = await _supabase.rpc('get_report_data', { p_id: id });
+    if (error) { root.innerHTML = '<div class="msg"><strong>This report isn\'t available.</strong><p style="margin-top:8px;color:var(--slate);">' + esc(error.message) + '</p></div>'; return; }
+    render(data);
+  })();
+</script>
+</body>
+</html>
