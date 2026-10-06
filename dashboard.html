@@ -9,9 +9,6 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    /* Residential theme — same variable names as Commercial, new values.
-       See login.html for the full rationale; keep these two files' :root
-       blocks in sync if you tweak the palette. */
     --navy:       #2d3b2e;
     --navy-mid:   #3d4f3f;
     --navy-light: #526b55;
@@ -30,59 +27,101 @@
   .nav-logo-icon { width: 32px; height: 32px; background: var(--gold); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
   .nav-logo-text { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: #fff; }
   .nav-logo-text span { color: var(--gold); }
-  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-right { display: flex; align-items: center; gap: 14px; }
   .nav-user { font-size: 13px; color: var(--slate-light); }
   .nav-user strong { color: #fff; font-weight: 600; }
   .role-pill { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; padding: 3px 9px; border-radius: 20px; font-family: 'IBM Plex Mono', monospace; }
-  .role-pill.admin { background: var(--gold); color: var(--navy); }
-  .role-pill.inspector { background: rgba(255,255,255,0.12); color: #c8d8e8; }
-  .btn-signout { background: none; border: 1px solid rgba(255,255,255,0.2); color: #a8bfd4; font-size: 12px; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; transition: all .2s; }
+  .role-pill.admin     { background: var(--gold); color: var(--navy); }
+  .role-pill.inspector { background: rgba(255,255,255,0.14); color: #dfe9df; }
+  .role-pill.reviewer  { background: #b9d8c0; color: #1d3a26; }
+  .role-pill.requestor { background: #c9dcef; color: #1f3a57; }
+  .role-pill.pending   { background: #f3d1c9; color: #7a2e1d; }
+  .btn-signout { background: none; border: 1px solid rgba(255,255,255,0.2); color: #cfd8cf; font-size: 12px; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-family: inherit; }
   .btn-signout:hover { border-color: var(--gold); color: var(--gold); }
   .main { max-width: 1400px; margin: 0 auto; padding: 32px 32px 60px; }
-  .page-header { margin-bottom: 28px; }
-  .page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
-  .page-subtitle { font-size: 13px; color: var(--slate); }
-  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px; }
-  .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; position: relative; overflow: hidden; }
+  .page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+  .page-subtitle { font-size: 13px; color: var(--slate); margin-bottom: 26px; }
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 26px; }
+  .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; position: relative; overflow: hidden; }
   .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent-color, var(--gold)); }
   .stat-card.accent-green  { --accent-color: #38a169; }
   .stat-card.accent-orange { --accent-color: #dd6b20; }
-  .stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--slate); margin-bottom: 10px; font-family: 'IBM Plex Mono', monospace; }
-  .stat-value { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: var(--navy); line-height: 1; }
+  .stat-card.accent-red    { --accent-color: #c53030; }
+  .stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--slate); margin-bottom: 8px; font-family: 'IBM Plex Mono', monospace; }
+  .stat-value { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; line-height: 1; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .tab { background: none; border: none; padding: 9px 18px; font-family: inherit; font-size: 13px; font-weight: 600; color: var(--slate); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab.active { color: var(--navy); border-bottom-color: var(--gold); }
   .table-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; overflow: visible; }
   .table-scroll-wrap { overflow-x: auto; border-radius: 0 0 10px 10px; }
   .table-toolbar { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .search-input { flex: 1; min-width: 160px; padding: 7px 12px; border: 1px solid var(--border); border-radius: 7px; font-family: inherit; font-size: 13px; color: var(--navy); outline: none; }
   .search-input:focus { border-color: var(--gold); }
   .filter-select { padding: 7px 10px; border: 1px solid var(--border); border-radius: 7px; font-family: inherit; font-size: 12px; color: var(--navy); background: #fff; cursor: pointer; outline: none; }
-  .btn-new-insp { background: var(--navy); color: #fff; border: none; border-radius: 7px; padding: 7px 16px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-  .btn-new-insp:hover { background: var(--navy-mid); }
-  table { width: 100%; min-width: 700px; border-collapse: collapse; font-size: 13px; }
-  thead th { background: #f0ece4; padding: 10px 14px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--slate); border-bottom: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; }
-  tbody tr { border-bottom: 1px solid #f0ece6; cursor: pointer; }
+  .btn-primary { background: var(--navy); color: #fff; border: none; border-radius: 7px; padding: 8px 16px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .btn-primary:hover { background: var(--navy-mid); }
+  .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+  table { width: 100%; min-width: 820px; border-collapse: collapse; font-size: 13px; }
+  thead th { background: #f0ece4; padding: 10px 14px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--slate); border-bottom: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; white-space: nowrap; }
+  tbody tr { border-bottom: 1px solid #f0ece6; }
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: #faf7f2; }
-  td { padding: 12px 14px; color: var(--navy); vertical-align: middle; }
+  td { padding: 11px 14px; color: var(--navy); vertical-align: middle; }
   .td-name { font-weight: 600; }
   .td-sub  { font-size: 11px; color: var(--slate); margin-top: 2px; }
-  .status-badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-family: 'IBM Plex Mono', monospace; }
-  .status-draft     { background: #EDF2F7; color: #4A5568; }
-  .status-submitted { background: #FFF3E0; color: #C05621; }
-  .status-inreview  { background: #FAF5FF; color: #6B46C1; }
-  .status-approved  { background: #F0FFF4; color: #276749; }
-  .status-returned  { background: #FEE2E2; color: #C53030; }
-  .btn-open { background: none; border: 1px solid var(--border); color: var(--slate); border-radius: 6px; padding: 5px 12px; font-size: 11px; font-family: inherit; cursor: pointer; }
-  .btn-open:hover { border-color: var(--navy); color: var(--navy); background: var(--bg); }
+  .status-badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; }
+  .s-unassigned { background: #FEE2E2; color: #C53030; }
+  .s-awaiting   { background: #FFF3E0; color: #C05621; }
+  .s-accepted   { background: #E6F2EA; color: #2f6b45; }
+  .s-draft      { background: #EDF2F7; color: #4A5568; }
+  .s-submitted  { background: #FFF3E0; color: #C05621; }
+  .s-inreview   { background: #FAF5FF; color: #6B46C1; }
+  .s-approved   { background: #F0FFF4; color: #276749; }
+  .s-returned   { background: #FEE2E2; color: #C53030; }
+  .s-released   { background: #C6F6D5; color: #22543D; }
+  .s-client     { background: #EDF2F7; color: #2d3b2e; }
+  .btn-sm { background: none; border: 1px solid var(--border); color: var(--slate); border-radius: 6px; padding: 5px 10px; font-size: 11px; font-family: inherit; cursor: pointer; margin: 1px 2px 1px 0; white-space: nowrap; }
+  .btn-sm:hover { border-color: var(--navy); color: var(--navy); background: var(--bg); }
+  .btn-sm.good { background: #276749; border-color: #276749; color: #fff; }
+  .btn-sm.danger { color: #c53030; border-color: #c53030; }
+  .btn-sm.gold { background: var(--gold); border-color: var(--gold); color: #fff; }
+  .assign-select { font-size: 11px; padding: 5px 6px; border-radius: 6px; border: 1px solid var(--border); max-width: 150px; font-family: inherit; background: #fff; }
+  .assign-state { font-size: 10px; margin-top: 3px; font-weight: 600; }
+  .assign-state.pending  { color: #C05621; }
+  .assign-state.accepted { color: #2f6b45; }
   .empty-state { text-align: center; padding: 50px 20px; color: var(--slate-light); }
   .empty-icon { font-size: 36px; margin-bottom: 10px; }
-  .empty-text { font-size: 14px; }
-  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--navy); color: #fff; padding: 10px 22px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none; z-index: 9999; border-left: 3px solid var(--gold); }
+  .notice-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 36px 28px; text-align: center; max-width: 560px; margin: 40px auto; }
+  .notice-card h2 { font-family: 'Playfair Display', serif; margin-bottom: 10px; }
+  .notice-card p { font-size: 14px; color: var(--slate); line-height: 1.6; }
+  .help-note { font-size: 12px; color: var(--slate); padding: 12px 18px; border-bottom: 1px solid var(--border); background: var(--gold-pale); }
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(45,59,46,0.55); z-index: 1000; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; }
+  .modal { background: #fff; border-radius: 12px; max-width: 580px; width: 100%; }
+  .modal-head { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-head h3 { font-family: 'Playfair Display', serif; font-size: 18px; }
+  .modal-x { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--slate); }
+  .modal-body { padding: 18px 22px 22px; }
+  .m-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .m-field { display: flex; flex-direction: column; }
+  .m-field.full { grid-column: 1 / -1; }
+  .m-field label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--slate); margin-bottom: 5px; }
+  .m-field input, .m-field select, .m-field textarea { padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px; font-size: 13.5px; font-family: inherit; background: var(--bg); color: var(--navy); }
+  .m-field textarea { min-height: 70px; resize: vertical; }
+  .m-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+  .timeline { margin: 6px 0 14px; }
+  .tl-item { border-left: 2px solid var(--border); padding: 0 0 12px 14px; margin-left: 6px; position: relative; }
+  .tl-item::before { content: ''; position: absolute; left: -6px; top: 3px; width: 10px; height: 10px; border-radius: 50%; background: var(--gold); }
+  .tl-time { font-size: 11px; color: var(--slate); font-family: 'IBM Plex Mono', monospace; }
+  .tl-text { font-size: 13px; margin-top: 2px; }
+  .tl-flag { font-size: 10px; background: #c9dcef; color: #1f3a57; border-radius: 10px; padding: 1px 7px; margin-left: 6px; }
+  .detail-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 12.5px; margin-bottom: 14px; line-height: 1.55; }
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--navy); color: #fff; padding: 10px 22px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none; z-index: 9999; border-left: 3px solid var(--gold); max-width: 90vw; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   @media (max-width: 700px) {
-    .stats-row { grid-template-columns: 1fr 1fr; }
     .topnav { padding: 0 16px; }
     .main { padding: 20px 14px 50px; }
     .nav-user { display: none; }
+    .m-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -94,62 +133,61 @@
     </div>
     <div class="nav-right">
       <span class="nav-user">Signed in as <strong id="nav-name">—</strong></span>
-      <span class="role-pill" id="nav-role-pill">inspector</span>
+      <span class="role-pill pending" id="nav-role-pill">…</span>
       <button class="btn-signout" onclick="signOut()">Sign Out</button>
     </div>
   </nav>
 
-  <div class="main">
-    <div class="page-header">
-      <div class="page-title">Dashboard</div>
-      <div class="page-subtitle" id="page-subtitle">Loading your inspections…</div>
-    </div>
+  <div class="main" id="main">
+    <div class="page-title" id="page-title">Dashboard</div>
+    <div class="page-subtitle" id="page-subtitle">Loading…</div>
+    <div id="content"></div>
+  </div>
 
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-label">Total Inspections</div>
-        <div class="stat-value" id="stat-total">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Draft</div>
-        <div class="stat-value" id="stat-draft">—</div>
-      </div>
-      <div class="stat-card accent-orange">
-        <div class="stat-label">In Review</div>
-        <div class="stat-value" id="stat-inreview">—</div>
-      </div>
-      <div class="stat-card accent-green">
-        <div class="stat-label">Approved</div>
-        <div class="stat-value" id="stat-approved">—</div>
+  <!-- New job / request modal -->
+  <div class="overlay" id="new-overlay">
+    <div class="modal">
+      <div class="modal-head"><h3 id="new-title">New Job</h3><button class="modal-x" onclick="closeModal('new-overlay')">✕</button></div>
+      <div class="modal-body">
+        <div class="m-grid">
+          <div class="m-field full"><label>Property Owner / Insured Name *</label><input id="n-name" type="text"></div>
+          <div class="m-field full"><label>Street Address *</label><input id="n-address" type="text"></div>
+          <div class="m-field"><label>City</label><input id="n-city" type="text"></div>
+          <div class="m-field"><label>Province / State</label><input id="n-prov" type="text"></div>
+          <div class="m-field"><label>Postal / ZIP Code</label><input id="n-postal" type="text"></div>
+          <div class="m-field"><label>Contact Phone</label><input id="n-phone" type="tel"></div>
+          <div class="m-field full">
+            <label>Inspection Type</label>
+            <select id="n-type">
+              <option value="residential_lite">Residential Lite</option>
+              <option value="residential_full" disabled>Residential (Full) — coming soon</option>
+              <option value="exterior" disabled>Exterior — coming soon</option>
+              <option value="interior_exterior" disabled>Interior / Exterior — coming soon</option>
+            </select>
+          </div>
+          <div class="m-field full" id="n-requestor-wrap" style="display:none;"><label>On behalf of (requestor, optional)</label><select id="n-requestor"></select></div>
+          <div class="m-field full"><label>Notes / Special Instructions</label><textarea id="n-notes" placeholder="Access details, best times to call, anything the inspector should know…"></textarea></div>
+        </div>
+        <div class="m-actions">
+          <button class="btn-sm" onclick="closeModal('new-overlay')">Cancel</button>
+          <button class="btn-primary" id="n-submit" onclick="submitNewJob()">Submit</button>
+        </div>
       </div>
     </div>
+  </div>
 
-    <div class="table-card">
-      <div class="table-toolbar">
-        <input type="text" class="search-input" id="search-input" placeholder="Search by name or address…" oninput="renderTable()">
-        <select class="filter-select" id="status-filter" onchange="renderTable()">
-          <option value="">All Statuses</option>
-          <option value="draft">Draft</option>
-          <option value="submitted">Submitted</option>
-          <option value="inreview">In Review</option>
-          <option value="approved">Approved</option>
-          <option value="returned">Returned</option>
-        </select>
-        <button class="btn-new-insp" onclick="newInspection()">＋ New Inspection</button>
-      </div>
-      <div class="table-scroll-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Owner / Insured</th>
-              <th>Address</th>
-              <th>Status</th>
-              <th>Updated</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="table-body"></tbody>
-        </table>
+  <!-- Activity log modal -->
+  <div class="overlay" id="log-overlay">
+    <div class="modal">
+      <div class="modal-head"><h3 id="log-title">Job Log</h3><button class="modal-x" onclick="closeModal('log-overlay')">✕</button></div>
+      <div class="modal-body">
+        <div class="detail-box" id="log-details" style="display:none;"></div>
+        <div class="timeline" id="log-timeline">Loading…</div>
+        <div id="log-add" style="display:none;">
+          <div class="m-field full"><label>Add a note</label><textarea id="log-note" placeholder="e.g. Appointment made for Oct 12 at 10:00 am"></textarea></div>
+          <label style="font-size:12px;display:flex;gap:8px;align-items:center;margin-top:8px;"><input type="checkbox" id="log-visible"> Visible to the requestor</label>
+          <div class="m-actions"><button class="btn-primary" onclick="addNote()">Add Note</button></div>
+        </div>
       </div>
     </div>
   </div>
@@ -157,99 +195,388 @@
   <div class="toast" id="toast"></div>
 
 <script>
-  // NOTE: replace with your new Residential Supabase project's own URL and
-  // anon (public) key — same project login.html points at.
   const SUPABASE_URL = 'https://lkihphmtyusqmnhbfswq.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_X7JifOrQKvkCwGD7DQpPZg_-6jB5j3Z';
   const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  var allInspections = [];
-  var currentUser = null;
+  var me = null;            // auth user
+  var myRole = 'pending';
+  var myName = '';
+  var jobs = [];            // admin/staff: inspections rows; requestor: get_my_requests rows
+  var profiles = [];        // admin only
+  var activeTab = 'jobs';
+  var logJobId = null;
 
+  var TYPE_LABELS = { residential_lite: 'Residential Lite', residential_full: 'Residential (Full)', exterior: 'Exterior', interior_exterior: 'Interior / Exterior' };
+  // Maps inspection_type -> the form file that handles it. Extend as the
+  // other tiers get built; unknown types fall back to Lite.
+  var FORM_FILES = { residential_lite: '/app-residential-lite.html' };
+  function formFileFor(t) { return FORM_FILES[t] || FORM_FILES.residential_lite; }
+
+  // Everything that comes from the database is escaped before it is put on the
+  // page — requestors can now type text that staff will see.
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function fmtDate(ts) { if (!ts) return '—'; var d = new Date(ts); return isNaN(d) ? '—' : d.toLocaleDateString(); }
+  function fmtDateTime(ts) { if (!ts) return ''; var d = new Date(ts); return isNaN(d) ? '' : d.toLocaleString(); }
   function showToast(msg) {
     var t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(function() { t.classList.remove('show'); }, 2800);
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 3200);
+  }
+  function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+  function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+  function personName(id) {
+    var p = profiles.find(function(x) { return x.id === id; });
+    return p ? (p.full_name || p.email) : '';
   }
 
-  function statusClass(status) {
-    var map = { draft: 'status-draft', submitted: 'status-submitted', inreview: 'status-inreview', approved: 'status-approved', returned: 'status-returned' };
-    return map[status] || 'status-draft';
+  // ── Status ──
+  function statusInfo(r) {
+    var s = r.report_status || 'draft';
+    if (r.released_at) return { key: 'released', text: 'Released' };
+    if (s === 'requested') {
+      if (!r.inspector_id) return { key: 'unassigned', text: 'Needs assignment' };
+      if (r.inspector_status === 'pending') return { key: 'awaiting', text: 'Awaiting acceptance' };
+      return { key: 'accepted', text: 'Accepted — not started' };
+    }
+    var labels = { draft: 'Draft', submitted: 'Submitted', inreview: 'In Review', approved: 'Approved', returned: 'Returned' };
+    return { key: s, text: labels[s] || s };
+  }
+  function badge(info) { return '<span class="status-badge s-' + info.key + '">' + esc(info.text) + '</span>'; }
+
+  // ── Loading ──
+  async function loadJobs() {
+    if (myRole === 'requestor') {
+      const { data, error } = await _supabase.rpc('get_my_requests');
+      if (error) { showToast('⚠ ' + error.message); return; }
+      jobs = data || [];
+    } else {
+      const { data, error } = await _supabase.from('inspections').select('*').order('updated_at', { ascending: false });
+      if (error) { showToast('⚠ ' + error.message); return; }
+      jobs = data || [];
+    }
+    if (myRole === 'admin') {
+      const pr = await _supabase.from('profiles').select('id, email, full_name, organization, role').order('full_name');
+      if (!pr.error) profiles = pr.data || [];
+    }
+    render();
   }
 
-  function renderTable() {
-    var search = (document.getElementById('search-input').value || '').toLowerCase();
-    var statusFilter = document.getElementById('status-filter').value;
-    var filtered = allInspections.filter(function(r) {
-      var matchesSearch = !search || (r.insured_name || '').toLowerCase().indexOf(search) !== -1 || (r.location || '').toLowerCase().indexOf(search) !== -1;
-      var matchesStatus = !statusFilter || r.report_status === statusFilter;
-      return matchesSearch && matchesStatus;
+  // ── Rendering ──
+  function render() {
+    if (myRole === 'admin') renderAdmin();
+    else if (myRole === 'inspector' || myRole === 'reviewer') renderStaff();
+    else if (myRole === 'requestor') renderRequestor();
+  }
+
+  function statCards(cards) {
+    return '<div class="stats-row">' + cards.map(function(c) {
+      return '<div class="stat-card ' + (c[2] || '') + '"><div class="stat-label">' + esc(c[0]) + '</div><div class="stat-value">' + c[1] + '</div></div>';
+    }).join('') + '</div>';
+  }
+  function count(list, keys) { return list.filter(function(r) { return keys.indexOf(statusInfo(r).key) !== -1; }).length; }
+
+  function filterOptions() {
+    return '<option value="">All Statuses</option>' +
+      [['unassigned','Needs assignment'],['awaiting','Awaiting acceptance'],['accepted','Accepted — not started'],['draft','Draft'],
+       ['submitted','Submitted'],['inreview','In Review'],['returned','Returned'],['approved','Approved'],['released','Released']]
+      .map(function(o) { return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('');
+  }
+  function filteredJobs() {
+    var q = ((document.getElementById('search-input') || {}).value || '').toLowerCase();
+    var f = (document.getElementById('status-filter') || {}).value || '';
+    return jobs.filter(function(r) {
+      var hay = ((r.insured_name || '') + ' ' + (r.location || '') + ' ' + (r.city || '')).toLowerCase();
+      return (!q || hay.indexOf(q) !== -1) && (!f || statusInfo(r).key === f);
     });
+  }
+  function propertyCell(r) {
+    return '<div class="td-name">' + esc(r.insured_name || 'Untitled') + '</div>' +
+           '<div class="td-sub">' + esc([r.location, r.city].filter(Boolean).join(', ')) + '</div>';
+  }
+
+  // ADMIN
+  function renderAdmin() {
+    document.getElementById('page-title').textContent = 'Admin Dashboard';
+    document.getElementById('page-subtitle').textContent = 'All jobs · all people';
+    var pendingUsers = profiles.filter(function(p) { return p.role === 'pending'; }).length;
+    var html = statCards([
+      ['Total Jobs', jobs.length],
+      ['Needs Assignment', count(jobs, ['unassigned']), 'accent-red'],
+      ['In Progress', count(jobs, ['awaiting','accepted','draft','returned']), 'accent-orange'],
+      ['In QA', count(jobs, ['submitted','inreview']), 'accent-orange'],
+      ['Ready to Release', jobs.filter(function(r) { return r.report_status === 'approved' && !r.released_at; }).length, 'accent-green']
+    ]);
+    html += '<div class="tabs">' +
+      '<button class="tab ' + (activeTab === 'jobs' ? 'active' : '') + '" onclick="setTab(\'jobs\')">Jobs</button>' +
+      '<button class="tab ' + (activeTab === 'users' ? 'active' : '') + '" onclick="setTab(\'users\')">Users' + (pendingUsers ? ' (' + pendingUsers + ' pending)' : '') + '</button></div>';
+    html += activeTab === 'users' ? usersTableHtml() : adminJobsHtml();
+    document.getElementById('content').innerHTML = html;
+    if (activeTab === 'jobs') renderAdminRows();
+  }
+  function setTab(t) { activeTab = t; renderAdmin(); }
+
+  function adminJobsHtml() {
+    return '<div class="table-card"><div class="table-toolbar">' +
+      '<input type="text" class="search-input" id="search-input" placeholder="Search by name or address…" oninput="renderAdminRows()">' +
+      '<select class="filter-select" id="status-filter" onchange="renderAdminRows()">' + filterOptions() + '</select>' +
+      '<button class="btn-primary" onclick="openNewJob()">＋ New Job</button></div>' +
+      '<div class="table-scroll-wrap"><table><thead><tr><th>Property</th><th>Type</th><th>Status</th><th>Inspector</th><th>Reviewer</th><th>Requestor</th><th>Updated</th><th></th></tr></thead>' +
+      '<tbody id="table-body"></tbody></table></div></div>';
+  }
+  function personOptions(allowedRoles, selectedId) {
+    var o = '<option value="">— Unassigned —</option>';
+    profiles.filter(function(p) { return allowedRoles.indexOf(p.role) !== -1; }).forEach(function(p) {
+      o += '<option value="' + p.id + '"' + (p.id === selectedId ? ' selected' : '') + '>' + esc(p.full_name || p.email) + '</option>';
+    });
+    return o;
+  }
+  function renderAdminRows() {
     var tbody = document.getElementById('table-body');
-    if (!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🏠</div><div class="empty-text">No inspections yet — click "New Inspection" to get started.</div></div></td></tr>';
+    if (!tbody) return;
+    var list = filteredJobs();
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🏠</div>No jobs yet — click "New Job" or wait for a client request.</div></td></tr>';
       return;
     }
-    tbody.innerHTML = filtered.map(function(r) {
-      var updated = r.updated_at ? new Date(r.updated_at).toLocaleDateString() : '—';
-      return '<tr onclick="openInspection(\'' + r.id + '\')">' +
-        '<td class="td-name">' + (r.insured_name || 'Untitled') + '</td>' +
-        '<td>' + (r.location || '—') + '</td>' +
-        '<td><span class="status-badge ' + statusClass(r.report_status) + '">' + (r.report_status || 'draft') + '</span></td>' +
-        '<td>' + updated + '</td>' +
-        '<td><button class="btn-open" onclick="event.stopPropagation();deleteInspection(\'' + r.id + '\')">Delete</button></td>' +
-        '</tr>';
+    tbody.innerHTML = list.map(function(r) {
+      var st = statusInfo(r);
+      var inspState = r.inspector_id ? '<div class="assign-state ' + esc(r.inspector_status) + '">' + (r.inspector_status === 'accepted' ? '✓ accepted' : '⏳ awaiting acceptance') + '</div>' : '';
+      var revState = r.reviewer_id ? '<div class="assign-state ' + esc(r.reviewer_status) + '">' + (r.reviewer_status === 'accepted' ? '✓ accepted' : '⏳ awaiting acceptance') + '</div>' : '';
+      var actions = '<button class="btn-sm" onclick="openJob(\'' + r.id + '\')">Open</button>' +
+        '<button class="btn-sm" onclick="openLog(\'' + r.id + '\')">Log</button>' +
+        '<button class="btn-sm" onclick="viewReport(\'' + r.id + '\')">Report</button>';
+      if (r.report_status === 'approved' && !r.released_at) actions += '<button class="btn-sm good" onclick="releaseJob(\'' + r.id + '\')">Release</button>';
+      actions += '<button class="btn-sm danger" onclick="deleteJob(\'' + r.id + '\')">Delete</button>';
+      return '<tr>' +
+        '<td>' + propertyCell(r) + '</td>' +
+        '<td>' + esc(TYPE_LABELS[r.inspection_type] || '—') + '</td>' +
+        '<td>' + badge(st) + '</td>' +
+        '<td><select class="assign-select" id="insp-' + r.id + '" onchange="assignChanged(\'' + r.id + '\')">' + personOptions(['inspector','admin'], r.inspector_id) + '</select>' + inspState + '</td>' +
+        '<td><select class="assign-select" id="rev-' + r.id + '" onchange="assignChanged(\'' + r.id + '\')">' + personOptions(['reviewer','admin'], r.reviewer_id) + '</select>' + revState + '</td>' +
+        '<td>' + esc(personName(r.requestor_id) || '—') + '</td>' +
+        '<td>' + fmtDate(r.updated_at) + '</td>' +
+        '<td>' + actions + '</td></tr>';
     }).join('');
   }
 
-  function updateStats() {
-    document.getElementById('stat-total').textContent = allInspections.length;
-    document.getElementById('stat-draft').textContent = allInspections.filter(function(r) { return r.report_status === 'draft' || !r.report_status; }).length;
-    document.getElementById('stat-inreview').textContent = allInspections.filter(function(r) { return r.report_status === 'inreview'; }).length;
-    document.getElementById('stat-approved').textContent = allInspections.filter(function(r) { return r.report_status === 'approved'; }).length;
+  function usersTableHtml() {
+    var rows = profiles.map(function(p) {
+      var isSelf = me && p.id === me.id;
+      var roleSel = '<select class="assign-select" id="role-' + p.id + '"' + (isSelf ? ' disabled title="You cannot change your own role"' : '') + '>' +
+        ['admin','inspector','reviewer','requestor','pending'].map(function(r) { return '<option value="' + r + '"' + (p.role === r ? ' selected' : '') + '>' + r + '</option>'; }).join('') + '</select>';
+      return '<tr><td>' + esc(p.email) + '</td>' +
+        '<td><input class="assign-select" style="max-width:190px;" id="uname-' + p.id + '" value="' + esc(p.full_name || '') + '"></td>' +
+        '<td><input class="assign-select" style="max-width:190px;" id="uorg-' + p.id + '" value="' + esc(p.organization || '') + '" placeholder="(clients)"></td>' +
+        '<td>' + roleSel + '</td>' +
+        '<td><button class="btn-sm good" onclick="saveUser(\'' + p.id + '\')">Save</button></td></tr>';
+    }).join('');
+    return '<div class="table-card"><div class="help-note">To add someone: in Supabase go to <strong>Authentication → Users → Add user</strong> (email + password), then come back here and give them a name and a role. New logins start as <strong>pending</strong> and can see nothing until you do.</div>' +
+      '<div class="table-scroll-wrap"><table><thead><tr><th>Email</th><th>Name</th><th>Organization</th><th>Role</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+  }
+  async function saveUser(id) {
+    var roleEl = document.getElementById('role-' + id);
+    var patch = { full_name: document.getElementById('uname-' + id).value.trim(), organization: document.getElementById('uorg-' + id).value.trim() };
+    if (roleEl && !roleEl.disabled) patch.role = roleEl.value;
+    const { error } = await _supabase.from('profiles').update(patch).eq('id', id);
+    if (error) { showToast('⚠ ' + error.message); return; }
+    showToast('✓ User saved');
+    loadJobs();
   }
 
-  async function loadInspections() {
-    const { data, error } = await _supabase.from('inspections').select('*').order('updated_at', { ascending: false });
-    if (error) { showToast('⚠ Failed to load inspections: ' + error.message); return; }
-    allInspections = data || [];
-    document.getElementById('page-subtitle').textContent = allInspections.length + ' inspection(s) on file';
-    updateStats();
-    renderTable();
+  async function assignChanged(id) {
+    var insp = document.getElementById('insp-' + id).value || null;
+    var rev = document.getElementById('rev-' + id).value || null;
+    const { error } = await _supabase.rpc('assign_job', { p_id: id, p_inspector: insp, p_reviewer: rev });
+    if (error) { showToast('⚠ ' + error.message); }
+    else showToast('✓ Assignment updated');
+    loadJobs();
   }
-
-  // Maps inspection_type -> the form file that handles it. Extend this as
-  // the remaining three tiers (Residential Full, Exterior, Interior/
-  // Exterior) get built, rather than hardcoding a single destination —
-  // unrecognized or missing types fall back to Lite, since every record
-  // created so far is that type.
-  var FORM_FILES = {
-    residential_lite: '/app-residential-lite.html'
-  };
-  function formFileFor(inspectionType) {
-    return FORM_FILES[inspectionType] || FORM_FILES.residential_lite;
+  async function releaseJob(id) {
+    if (!confirm('Release this report to the requestor? They will be able to download it.')) return;
+    const { error } = await _supabase.rpc('release_job', { p_id: id });
+    if (error) { showToast('⚠ ' + error.message); return; }
+    showToast('✓ Report released');
+    loadJobs();
   }
-
-  function newInspection() {
-    // Once more than one form type exists, this should show a small picker
-    // (Lite / Full / Exterior / Interior-Exterior) before navigating —
-    // for now there's only one tier built, so go straight there.
-    window.location.href = formFileFor('residential_lite');
-  }
-
-  function openInspection(id) {
-    var record = allInspections.find(function(r) { return r.id === id; });
-    var type = record ? record.inspection_type : null;
-    window.location.href = formFileFor(type) + '?id=' + encodeURIComponent(id);
-  }
-
-  async function deleteInspection(id) {
-    if (!confirm('Delete this inspection? This cannot be undone.')) return;
+  async function deleteJob(id) {
+    var r = jobs.find(function(x) { return x.id === id; });
+    if (!confirm('Delete "' + (r ? (r.insured_name || 'this job') : 'this job') + '"? This cannot be undone.')) return;
     const { error } = await _supabase.from('inspections').delete().eq('id', id);
-    if (error) { showToast('⚠ Delete failed: ' + error.message); return; }
-    showToast('✓ Inspection deleted');
-    loadInspections();
+    if (error) { showToast('⚠ ' + error.message); return; }
+    showToast('✓ Job deleted');
+    loadJobs();
+  }
+
+  // INSPECTOR / REVIEWER
+  function myPending(r) {
+    return (r.inspector_id === me.id && r.inspector_status === 'pending') ||
+           (r.reviewer_id === me.id && r.reviewer_status === 'pending');
+  }
+  function renderStaff() {
+    var isRev = myRole === 'reviewer';
+    document.getElementById('page-title').textContent = 'My Dashboard';
+    document.getElementById('page-subtitle').textContent = 'Welcome back, ' + myName + ' — your assigned ' + (isRev ? 'reviews' : 'inspections');
+    var awaiting = jobs.filter(myPending).length;
+    var done = jobs.filter(function(r) { return r.report_status === 'approved' || r.released_at; }).length;
+    document.getElementById('content').innerHTML = statCards([
+      ['My Jobs', jobs.length],
+      ['Awaiting My Acceptance', awaiting, 'accent-orange'],
+      [isRev ? 'To Review' : 'In Progress', isRev ? count(jobs, ['submitted','inreview']) : count(jobs, ['accepted','draft','returned']), 'accent-orange'],
+      ['Completed', done, 'accent-green']
+    ]) +
+    '<div class="table-card"><div class="table-toolbar">' +
+      '<input type="text" class="search-input" id="search-input" placeholder="Search by name or address…" oninput="renderStaffRows()">' +
+      '<select class="filter-select" id="status-filter" onchange="renderStaffRows()">' + filterOptions() + '</select></div>' +
+      '<div class="table-scroll-wrap"><table><thead><tr><th>Property</th><th>Type</th><th>Status</th><th>Updated</th><th></th></tr></thead><tbody id="table-body"></tbody></table></div></div>';
+    renderStaffRows();
+  }
+  function renderStaffRows() {
+    var tbody = document.getElementById('table-body');
+    var list = filteredJobs();
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📋</div>Nothing assigned to you yet.</div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(function(r) {
+      var st = statusInfo(r);
+      var actions;
+      if (myPending(r)) {
+        actions = '<button class="btn-sm good" onclick="respond(\'' + r.id + '\',\'accept\')">Accept</button>' +
+                  '<button class="btn-sm danger" onclick="respond(\'' + r.id + '\',\'decline\')">Decline</button>' +
+                  '<button class="btn-sm" onclick="openLog(\'' + r.id + '\')">Log</button>';
+      } else {
+        actions = '<button class="btn-sm gold" onclick="openJob(\'' + r.id + '\')">Open</button>' +
+                  '<button class="btn-sm" onclick="openLog(\'' + r.id + '\')">Log</button>' +
+                  '<button class="btn-sm danger" onclick="respond(\'' + r.id + '\',\'decline\')" title="Hand this job back to the administrator">Transfer back</button>';
+      }
+      return '<tr><td>' + propertyCell(r) + '</td><td>' + esc(TYPE_LABELS[r.inspection_type] || '—') + '</td><td>' + badge(st) + '</td><td>' + fmtDate(r.updated_at) + '</td><td>' + actions + '</td></tr>';
+    }).join('');
+  }
+  async function respond(id, action) {
+    var reason = null;
+    if (action === 'decline') {
+      reason = prompt('Please give a short reason for handing this job back to the administrator:');
+      if (reason === null) return;
+      if (!reason.trim()) { showToast('A reason is required.'); return; }
+    }
+    const { error } = await _supabase.rpc('respond_to_assignment', { p_id: id, p_action: action, p_reason: reason });
+    if (error) { showToast('⚠ ' + error.message); return; }
+    showToast(action === 'accept' ? '✓ Job accepted' : '✓ Job handed back');
+    loadJobs();
+  }
+
+  // REQUESTOR
+  function renderRequestor() {
+    document.getElementById('page-title').textContent = 'My Inspection Requests';
+    document.getElementById('page-subtitle').textContent = 'Request an inspection, follow its progress, and download the report once it is ready';
+    var ready = jobs.filter(function(r) { return r.released_at; }).length;
+    var html = statCards([['My Requests', jobs.length], ['In Progress', jobs.length - ready, 'accent-orange'], ['Reports Ready', ready, 'accent-green']]);
+    html += '<div class="table-card"><div class="table-toolbar"><div style="flex:1"></div><button class="btn-primary" onclick="openNewJob()">＋ Request an Inspection</button></div>' +
+      '<div class="table-scroll-wrap"><table><thead><tr><th>Property</th><th>Type</th><th>Requested</th><th>Status</th><th></th></tr></thead><tbody>';
+    if (!jobs.length) {
+      html += '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🏠</div>No requests yet — click "Request an Inspection" to start one.</div></td></tr>';
+    } else {
+      html += jobs.map(function(r) {
+        var actions = '<button class="btn-sm" onclick="openLog(\'' + r.id + '\')">Updates</button>';
+        if (r.released_at) actions += '<button class="btn-sm good" onclick="viewReport(\'' + r.id + '\')">Download Report</button>';
+        return '<tr><td>' + propertyCell(r) + '</td><td>' + esc(TYPE_LABELS[r.inspection_type] || '—') + '</td><td>' + fmtDate(r.created_at) + '</td>' +
+               '<td><span class="status-badge s-' + (r.released_at ? 'released' : 'client') + '">' + esc(r.client_status) + '</span></td><td>' + actions + '</td></tr>';
+      }).join('');
+    }
+    html += '</tbody></table></div></div>';
+    document.getElementById('content').innerHTML = html;
+  }
+
+  // ── New job / request ──
+  function openNewJob() {
+    ['n-name','n-address','n-city','n-prov','n-postal','n-phone','n-notes'].forEach(function(id) { document.getElementById(id).value = ''; });
+    document.getElementById('new-title').textContent = myRole === 'admin' ? 'New Job' : 'Request an Inspection';
+    var wrap = document.getElementById('n-requestor-wrap');
+    if (myRole === 'admin') {
+      var opts = '<option value="">— none (walk-in / internal) —</option>';
+      profiles.filter(function(p) { return p.role === 'requestor'; }).forEach(function(p) {
+        opts += '<option value="' + p.id + '">' + esc((p.full_name || p.email) + (p.organization ? ' — ' + p.organization : '')) + '</option>';
+      });
+      document.getElementById('n-requestor').innerHTML = opts;
+      wrap.style.display = 'flex';
+    } else { wrap.style.display = 'none'; }
+    openModal('new-overlay');
+  }
+  async function submitNewJob() {
+    var btn = document.getElementById('n-submit');
+    var args = {
+      p_insured_name: document.getElementById('n-name').value,
+      p_location: document.getElementById('n-address').value,
+      p_city: document.getElementById('n-city').value || null,
+      p_province_state: document.getElementById('n-prov').value || null,
+      p_postal_code: document.getElementById('n-postal').value || null,
+      p_inspection_type: document.getElementById('n-type').value,
+      p_contact_phone: document.getElementById('n-phone').value || null,
+      p_notes: document.getElementById('n-notes').value || null
+    };
+    var reqId = document.getElementById('n-requestor').value;
+    if (myRole === 'admin' && reqId) args.p_requestor_id = reqId;
+    btn.disabled = true;
+    const { error } = await _supabase.rpc('create_request', args);
+    btn.disabled = false;
+    if (error) { showToast('⚠ ' + error.message); return; }
+    closeModal('new-overlay');
+    showToast(myRole === 'admin' ? '✓ Job created' : '✓ Request submitted — we will be in touch');
+    loadJobs();
+  }
+
+  // ── Navigation helpers ──
+  function openJob(id) {
+    var r = jobs.find(function(x) { return x.id === id; });
+    window.location.href = formFileFor(r ? r.inspection_type : null) + '?id=' + encodeURIComponent(id);
+  }
+  function viewReport(id) { window.open('/report-residential-lite.html?id=' + encodeURIComponent(id), '_blank'); }
+
+  // ── Activity log ──
+  async function openLog(id) {
+    logJobId = id;
+    var r = jobs.find(function(x) { return x.id === id; });
+    document.getElementById('log-title').textContent = r ? (r.insured_name || 'Job') + ' — activity' : 'Job activity';
+    var det = document.getElementById('log-details');
+    if (r && myRole !== 'requestor') {
+      var lines = [];
+      if (r.requestor_id) lines.push('<strong>Requestor:</strong> ' + esc(personName(r.requestor_id) || 'on file'));
+      if (r.contact_phone) lines.push('<strong>Phone:</strong> ' + esc(r.contact_phone));
+      if (r.requestor_notes) lines.push('<strong>Request notes:</strong> ' + esc(r.requestor_notes));
+      det.innerHTML = lines.join('<br>'); det.style.display = lines.length ? 'block' : 'none';
+    } else { det.style.display = 'none'; }
+    document.getElementById('log-add').style.display = myRole === 'requestor' ? 'none' : 'block';
+    document.getElementById('log-note').value = ''; document.getElementById('log-visible').checked = false;
+    document.getElementById('log-timeline').textContent = 'Loading…';
+    openModal('log-overlay');
+    await loadLog();
+  }
+  async function loadLog() {
+    var res = myRole === 'requestor'
+      ? await _supabase.rpc('get_my_request_events', { p_id: logJobId })
+      : await _supabase.from('job_events').select('*').eq('inspection_id', logJobId).order('created_at');
+    var el = document.getElementById('log-timeline');
+    if (res.error) { el.textContent = '⚠ ' + res.error.message; return; }
+    var evs = res.data || [];
+    if (!evs.length) { el.innerHTML = '<div style="font-size:13px;color:var(--slate);">Nothing logged yet.</div>'; return; }
+    el.innerHTML = evs.map(function(e) {
+      return '<div class="tl-item"><div class="tl-time">' + esc(fmtDateTime(e.created_at)) + (e.actor_name ? ' · ' + esc(e.actor_name) : '') + '</div>' +
+             '<div class="tl-text">' + esc(e.note || e.event_type) + (e.visible_to_requestor && myRole !== 'requestor' ? '<span class="tl-flag">visible to requestor</span>' : '') + '</div></div>';
+    }).join('');
+  }
+  async function addNote() {
+    var note = document.getElementById('log-note').value.trim();
+    if (!note) { showToast('Please type a note first.'); return; }
+    const { error } = await _supabase.rpc('add_job_note', { p_id: logJobId, p_note: note, p_visible: document.getElementById('log-visible').checked });
+    if (error) { showToast('⚠ ' + error.message); return; }
+    document.getElementById('log-note').value = ''; document.getElementById('log-visible').checked = false;
+    showToast('✓ Note added');
+    loadLog();
   }
 
   async function signOut() { await _supabase.auth.signOut(); window.location.replace('/login.html'); }
@@ -257,9 +584,20 @@
   (async function init() {
     const { data: { session } } = await _supabase.auth.getSession();
     if (!session) { window.location.replace('/login.html'); return; }
-    currentUser = session.user;
-    document.getElementById('nav-name').textContent = currentUser.email || 'User';
-    loadInspections();
+    me = session.user;
+    const { data: prof } = await _supabase.from('profiles').select('role, full_name, email').eq('id', me.id).maybeSingle();
+    myRole = (prof && prof.role) || 'pending';
+    myName = (prof && (prof.full_name || prof.email)) || me.email || 'User';
+    document.getElementById('nav-name').textContent = myName;
+    var pill = document.getElementById('nav-role-pill');
+    pill.textContent = myRole; pill.className = 'role-pill ' + myRole;
+    if (['admin','inspector','reviewer','requestor'].indexOf(myRole) === -1) {
+      document.getElementById('page-title').textContent = '';
+      document.getElementById('page-subtitle').textContent = '';
+      document.getElementById('content').innerHTML = '<div class="notice-card"><h2>Account awaiting activation</h2><p>Your login works, but an administrator hasn\'t given it access yet. Please contact your administrator and ask them to set up your account.</p></div>';
+      return;
+    }
+    loadJobs();
   })();
 </script>
 </body>
