@@ -211,6 +211,11 @@
         <div class="field"><label>Historic Registry</label><select id="val-historic"><option value="no">No</option><option value="yes">Yes</option></select></div>
         <div class="field"><label>Replacement Cost Type</label><select id="val-rctype"><option value="full">Full replacement</option><option value="func">Functional replacement</option></select></div>
         <div class="field"><label>Coverage A Amount ($, 0 if unknown)</label><input id="val-covA" type="number" min="0" placeholder="0"></div>
+        <div class="field"><label>Also return Actual Cash Value (ACV)?</label><select id="val-acv" onchange="document.getElementById('val-acv-box').style.display=this.value==='yes'?'contents':'none'"><option value="no">No</option><option value="yes">Yes</option></select></div>
+        <div id="val-acv-box" style="display:none;">
+          <div class="field"><label>Structure in use?</label><select id="val-inuse"><option value="yes">Yes</option><option value="no">No</option></select></div>
+          <div class="field"><label>General condition</label><select id="val-c-general"><option>excellent</option><option selected>good</option><option>average</option><option>fair</option><option>poor</option><option>dilapidated</option></select></div><div class="field"><label>Roof condition</label><select id="val-c-roof"><option>excellent</option><option selected>good</option><option>average</option><option>fair</option><option>poor</option><option>dilapidated</option></select></div><div class="field"><label>Wall condition</label><select id="val-c-wall"><option>excellent</option><option selected>good</option><option>average</option><option>fair</option><option>poor</option><option>dilapidated</option></select></div><div class="field"><label>Foundation condition</label><select id="val-c-found"><option>excellent</option><option selected>good</option><option>average</option><option>fair</option><option>poor</option><option>dilapidated</option></select></div>
+        </div>
       </div>
       <div style="margin-top:16px;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.04em;">Other Areas (garage, basement, porch, deck…)</div>
       <div id="val-areas" style="margin:8px 0;"></div>
@@ -544,14 +549,15 @@
     });
     return { locale: g('val-locale'), style: g('val-style'), quality: g('val-quality'), shape: g('val-shape'), ctype: g('val-ctype'),
       exterior: g('val-exterior'), exterior2: g('val-exterior2'), roof: g('val-roof'), roof2: g('val-roof2'), slope: g('val-slope'), reno: g('val-reno'), historic: g('val-historic'), rctype: g('val-rctype'),
-      covA: g('val-covA'), areas: areas };
+      covA: g('val-covA'), acv: g('val-acv'), inuse: g('val-inuse'), c_general: g('val-c-general'), c_roof: g('val-c-roof'), c_wall: g('val-c-wall'), c_found: g('val-c-found'), areas: areas };
   }
   function loadValInputs(v) {
     if (!v) return;
     var set = function(id, x) { var el = document.getElementById(id); if (el && x != null) el.value = x; };
     set('val-locale', v.locale); set('val-style', v.style); set('val-quality', v.quality); set('val-shape', v.shape); set('val-ctype', v.ctype);
     set('val-exterior', v.exterior); set('val-exterior2', v.exterior2); set('val-roof', v.roof); set('val-roof2', v.roof2); set('val-slope', v.slope); set('val-reno', v.reno); set('val-historic', v.historic); set('val-rctype', v.rctype);
-    set('val-covA', v.covA);
+    set('val-covA', v.covA); set('val-acv', v.acv); set('val-inuse', v.inuse); set('val-c-general', v.c_general); set('val-c-roof', v.c_roof); set('val-c-wall', v.c_wall); set('val-c-found', v.c_found);
+    var ab = document.getElementById('val-acv-box'); if (ab) ab.style.display = (v.acv === 'yes') ? 'contents' : 'none';
     (v.areas || []).forEach(function(a) { addValArea(a.name, a.year, a.sqft); });
   }
   function valProvince(p) {
@@ -580,6 +586,7 @@
       architectural_style: v.style, construction_quality: v.quality, physical_shape: v.shape, construction_type: v.ctype,
       recent_renovations: v.reno, historic_registry: v.historic, primary_exterior: v.exterior, secondary_exterior: v.exterior2,
       primary_roof_covering: v.roof, secondary_roof_covering: v.roof2, slope_of_site: v.slope, replacement_cost_type: v.rctype };
+    if (v.acv === 'yes') p.return_acv = { _attr: { value: 'yes' }, structure_in_use: v.inuse || 'yes', condition: { general: v.c_general || 'good', roof: v.c_roof || 'good', wall: v.c_wall || 'good', foundation: v.c_found || 'good' } };
     var st = parseInt(g('storeys'), 10);
     if (st >= 1 && st <= 4) p.number_of_stories = st;
     if (v.areas.length) p.other_areas = { area: v.areas.map(function(a) { return { area_name: a.name, year_built: parseInt(a.year, 10), square_footage: parseInt(a.sqft, 10) }; }) };
@@ -596,6 +603,22 @@
     });
     return { status: st === 'failure' ? 'failure' : 'success', message: msg.trim(), fields: fields };
   }
+  var VAL_LABELS = { architectural_style: 'Architectural style', construction_quality: 'Construction quality', physical_shape: 'Physical shape',
+    construction_type: 'Construction type', primary_exterior: 'Primary exterior', primary_roof_covering: 'Primary roof covering', locale: 'Locale',
+    year_built: 'Year built', square_footage: 'Living area (sq ft)' };
+  function valMoney(x) {
+    var n = Number(String(x == null ? '' : x).replace(/[$,\s]/g, ''));
+    return isFinite(n) && String(x).trim() !== '' && /^[\s$\d,.]+$/.test(String(x)) ? '$' + Math.round(n).toLocaleString() : String(x);
+  }
+  function valSummaryHtml(r) {
+    var f = r.fields || {}, big = '';
+    if (f.replacement_cost) big += '<div style="flex:1;min-width:150px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);font-weight:600;">Replacement cost</div><div style="font-family:\'Playfair Display\',serif;font-size:24px;font-weight:700;">' + esc(valMoney(f.replacement_cost)) + '</div></div>';
+    if (f.acv) big += '<div style="flex:1;min-width:150px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);font-weight:600;">Actual cash value (range)</div><div style="font-family:\'Playfair Display\',serif;font-size:20px;font-weight:700;">' + esc(f.acv) + '</div></div>';
+    var rows = Object.keys(f).filter(function(k) { return k !== 'replacement_cost' && k !== 'acv'; }).map(function(k) {
+      return '<tr><td style="padding:3px 12px 3px 0;color:var(--slate);">' + esc(VAL_LABELS[k] || k.replace(/_/g, ' ')) + '</td><td style="padding:3px 0;font-weight:600;">' + esc(f[k]) + '</td></tr>';
+    }).join('');
+    return (big ? '<div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px;">' + big + '</div>' : '') + (rows ? '<table style="font-size:12.5px;">' + rows + '</table>' : '');
+  }
   function renderValResult(r) {
     var box = document.getElementById('val-result');
     if (!r) { box.innerHTML = ''; return; }
@@ -603,10 +626,7 @@
       box.innerHTML = '<div style="border:1px solid #f5c2c2;background:#fdf1f1;color:#a02828;border-radius:8px;padding:10px 12px;font-size:13px;">' + esc(r.message || 'The valuation could not be completed.') + '</div>';
       return;
     }
-    var rows = Object.keys(r.fields || {}).map(function(k) {
-      return '<tr><td style="padding:4px 10px 4px 0;color:var(--slate);">' + esc(k.replace(/_/g, ' ')) + '</td><td style="padding:4px 0;font-weight:600;">' + esc(r.fields[k]) + '</td></tr>';
-    }).join('');
-    box.innerHTML = '<div style="border:1px solid var(--border);background:var(--bg);border-radius:8px;padding:12px 14px;font-size:13px;"><div style="font-weight:700;margin-bottom:6px;">Valuation received ' + esc(r.fetched_at ? new Date(r.fetched_at).toLocaleString() : '') + '</div><table>' + rows + '</table></div>';
+    box.innerHTML = '<div style="border:1px solid var(--border);background:var(--bg);border-radius:8px;padding:12px 14px;font-size:13px;"><div style="font-weight:700;margin-bottom:8px;font-size:12px;color:var(--slate);">e2Value estimate received ' + esc(r.fetched_at ? new Date(r.fetched_at).toLocaleString() : '') + '</div>' + valSummaryHtml(r) + '</div>';
   }
   async function getValuation() {
     var st = document.getElementById('val-status'), btn = document.getElementById('btn-get-valuation');
