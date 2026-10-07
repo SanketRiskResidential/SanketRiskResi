@@ -81,7 +81,7 @@
   const SUPABASE_KEY = 'sb_publishable_X7JifOrQKvkCwGD7DQpPZg_-6jB5j3Z';
   const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  var TYPE_LABELS = { residential_lite: 'Residential Lite', residential_full: 'Residential (Full)', exterior: 'Exterior', interior_exterior: 'Interior / Exterior' };
+  var TYPE_LABELS = { residential_lite: 'Residential Lite', residential_full: 'Full Residential', residential_mh: 'Residential Manufactured', residential_mh_full: 'Full Residential Manufactured', exterior: 'Exterior', exterior_interior: 'Exterior / Interior', a_and_a: 'A&A', additional_structures: 'Additional Structures', supplementary: 'Supplementary Form' };
 
   // Everything is escaped before going into the page.
   function esc(s) {
