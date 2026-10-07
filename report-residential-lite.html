@@ -57,6 +57,25 @@
   .photos figcaption { font-size: 11.5px; color: var(--slate); margin-top: 3px; }
   .foot { margin-top: 34px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--slate); display: flex; justify-content: space-between; }
   .msg { max-width: 560px; margin: 60px auto; background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 32px; text-align: center; }
+  .cover { min-height: 920px; display: flex; flex-direction: column; justify-content: space-between; padding: 8px 0 0; page-break-after: always; break-after: page; }
+  .cover .brandline { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 20px; letter-spacing: .02em; }
+  .cover .brandline span { color: var(--gold); }
+  .cover .mid { margin: 90px 0 60px; }
+  .cover .kicker { font-size: 12px; text-transform: uppercase; letter-spacing: .14em; color: var(--gold); font-weight: 600; }
+  .cover h1 { font-family: 'Playfair Display', serif; font-size: 40px; line-height: 1.15; margin: 10px 0 8px; }
+  .cover .type { font-size: 16px; color: var(--slate); }
+  .cover .rule { width: 90px; height: 4px; background: var(--gold); margin: 26px 0; }
+  .cover .addr { font-family: 'Playfair Display', serif; font-size: 22px; line-height: 1.35; }
+  .cover .owner { font-size: 15px; color: var(--slate); margin-top: 6px; }
+  .cover .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 30px; border-top: 1px solid var(--border); padding-top: 18px; }
+  .cover .meta .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--slate-light); font-weight: 600; }
+  .cover .meta .v { font-size: 14px; font-weight: 600; margin-top: 2px; }
+  .val-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  .val-table td { padding: 6px 0; border-bottom: 1px dotted var(--border); }
+  .val-table td:first-child { color: var(--slate); font-size: 12.5px; text-transform: capitalize; }
+  .val-table td:last-child { font-weight: 600; text-align: right; }
+  .val-credit { font-size: 11.5px; color: var(--slate); margin-top: 8px; }
+  @media (max-width: 700px) { .cover { min-height: 0; } .cover .mid { margin: 40px 0; } .cover h1 { font-size: 30px; } .cover .meta { grid-template-columns: 1fr; } }
   @media (max-width: 700px) { .page { padding: 24px 18px; margin: 0; border: none; border-radius: 0; } .grid, .photos { grid-template-columns: 1fr; } .head { flex-direction: column; gap: 10px; } .head .logo { text-align: left; } }
   @media print {
     body { background: #fff; }
@@ -100,6 +119,14 @@
     if (!r.released_at) {
       html += '<div class="preview-banner">DRAFT PREVIEW — this report has not been released to the requestor and may still change.</div>';
     }
+    html += '<div class="cover"><div class="brandline">Sanket<span>Risk</span> Home</div>' +
+      '<div class="mid"><div class="kicker">Property Inspection Report</div><h1>Residential Inspection Report</h1>' +
+      '<div class="type">' + esc(TYPE_LABELS[r.inspection_type] || 'Residential') + ' inspection</div><div class="rule"></div>' +
+      '<div class="addr">' + esc(address || '—') + '</div><div class="owner">Prepared for ' + val(r.insured_name) + '</div></div>' +
+      '<div class="meta"><div><div class="k">Inspection date</div><div class="v">' + fmtDate(r.inspection_date) + '</div></div>' +
+      '<div><div class="k">Inspector</div><div class="v">' + val(r.inspector_name) + '</div></div>' +
+      '<div><div class="k">Report ID</div><div class="v">' + esc(String(r.id).slice(0, 8)) + '</div></div>' +
+      '<div><div class="k">' + (r.released_at ? 'Report released' : 'Status') + '</div><div class="v">' + (r.released_at ? fmtDate(r.released_at) : 'Draft preview') + '</div></div></div></div>';
     html += '<div class="head"><div><h1>Residential Inspection Report</h1><div class="sub">' + esc(TYPE_LABELS[r.inspection_type] || 'Residential') + ' inspection</div></div>' +
             '<div class="logo">Sanket<span>Risk</span> Home</div></div>';
     if (f.risk_quality) {
@@ -117,6 +144,18 @@
 
     html += '<h2>Roof</h2><div class="grid">' + row('Type / material', f.roof_type) + row('Age', f.roof_age_status) + row('Condition', f.roof_condition) + '</div>';
     html += '<h2>Exterior</h2><div class="grid">' + row('Siding / cladding', f.siding_material) + row('Condition', f.exterior_condition) + '</div>';
+
+    var vr = f.valuation_result;
+    if (vr && vr.status === 'success' && vr.fields && Object.keys(vr.fields).length) {
+      var vf = vr.fields, VL = { architectural_style: 'Architectural style', construction_quality: 'Construction quality', physical_shape: 'Physical shape', construction_type: 'Construction type', primary_exterior: 'Primary exterior', primary_roof_covering: 'Primary roof covering', locale: 'Locale', year_built: 'Year built', square_footage: 'Living area (sq ft)' };
+      var money = function(x) { var n = Number(String(x).replace(/[$,\s]/g, '')); return (/^[\s$\d,.]+$/.test(String(x)) && isFinite(n)) ? '$' + Math.round(n).toLocaleString() : String(x); };
+      html += '<h2>Replacement Cost Valuation</h2><div class="risk" style="margin-bottom:12px;">' +
+        (vf.replacement_cost ? '<div><div class="lbl">Replacement cost</div><div class="val">' + esc(money(vf.replacement_cost)) + '</div></div>' : '') +
+        (vf.acv ? '<div style="text-align:right"><div class="lbl">Actual cash value (range)</div><div class="val" style="font-size:18px;">' + esc(vf.acv) + '</div></div>' : '') + '</div>' +
+        '<table class="val-table">' + Object.keys(vf).filter(function(k) { return k !== 'replacement_cost' && k !== 'acv'; }).map(function(k) {
+          return '<tr><td>' + esc(VL[k] || k.replace(/_/g, ' ')) + '</td><td>' + esc(vf[k]) + '</td></tr>';
+        }).join('') + '</table><div class="val-credit">Estimate prepared with e2Value' + (vr.fetched_at ? ' on ' + esc(fmtDate(vr.fetched_at)) : '') + '. Replacement cost estimates are a planning aid and not an appraisal.</div>';
+    }
 
     var hz = f.site_hazards || [];
     html += '<h2>Site Hazards</h2>' + (hz.length ? '<div class="chips">' + hz.map(function(h) { return '<span class="chip">' + esc(h) + '</span>'; }).join('') + '</div>' : '<div style="color:var(--slate);">None recorded.</div>');
