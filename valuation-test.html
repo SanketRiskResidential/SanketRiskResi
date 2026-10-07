@@ -2,19 +2,18 @@
 <title>e2Value test</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>body{font-family:system-ui;margin:16px;max-width:900px}button{padding:10px 14px;margin:4px 4px 4px 0}pre{background:#f3f3f0;padding:10px;overflow:auto;white-space:pre-wrap;word-break:break-all}</style></head>
-<body><h2>e2Value Ballpark Residential — test call</h2>
+<body><h2>e2Value ProntoLite Residential — test call</h2>
 <p>Sign in on the dashboard first, then type this page's address into the browser (your site address followed by /valuation-test.html). It sends e2Value's own sample property.</p>
 <button onclick="run(false)">Send (with namespace)</button><button onclick="run(true)">Send (no namespace)</button>
 <div id="pdf"></div><pre id="out">Ready.</pre>
 <script>
 const LAMBDA_URL = 'https://vw7ib6ondyhngfsioxiactk5ty0rnfmg.lambda-url.ap-southeast-2.on.aws/';
 const _s = supabase.createClient('https://lkihphmtyusqmnhbfswq.supabase.co','sb_publishable_X7JifOrQKvkCwGD7DQpPZg_-6jB5j3Z');
-const est = {property:{address1:'111 Test Street',address2:'',city:'Ottawa',province:'Ontario',postalcode:'K2P 1L7',locale:'beachfront',coverage_a:250000,
+const est = {property:{postalcode:'K2P 1L7',living_area:{year_built:1990,square_footage:1000},address1:'111 Test Street',locale:'beachfront',coverage_a:250000,
 architectural_style:'Brownstone',construction_quality:'average / standard',physical_shape:'complicated',construction_type:'framing, steel',recent_renovations:'no',historic_registry:'no',
-primary_exterior:'brick masonry',primary_roof_covering:'architectural shingle',
-living_area:{year_built:1990,square_footage:1000},other_areas:{area:[{area_name:'breeze way',year_built:1990,square_footage:100}]},
-unique_items:{item:[{item_name:'gargoyle',cost:'500.00'}]},replacement_cost_type:'full',
-return_acv:{_attr:{value:'yes'},structure_in_use:'yes',condition:{general:'good',roof:'good',wall:'good',foundation:'good'}}}};
+primary_exterior:'brick masonry',primary_roof_covering:'architectural shingle',slope_of_site:'moderate',
+other_areas:{area:[{area_name:'breeze way',year_built:1990,square_footage:100}]},replacement_cost_type:'full',
+return_acv:{_attr:{value:'yes'},structure_in_use:'yes',condition:{general:'good',roof:'good',wall:'good',foundation:'good'}},number_of_stories:1}};
 async function run(noNs){
  const o=document.getElementById('out'); o.textContent='Sending…'; document.getElementById('pdf').innerHTML='';
  try{
