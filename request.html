@@ -104,6 +104,27 @@
       <div class="card">
         <h2>The inspection</h2>
         <div class="grid">
+          <div class="field full">
+            <label>Type of inspection *</label>
+            <select id="inspection_type">
+              <option value="residential_lite">Residential Lite</option>
+              <option value="residential_full">Full Residential</option>
+              <option value="residential_mh">Residential Manufactured</option>
+              <option value="residential_mh_full">Full Residential Manufactured</option>
+              <option value="exterior">Exterior</option>
+              <option value="exterior_interior">Exterior / Interior</option>
+              <option value="a_and_a">A&amp;A</option>
+              <option value="additional_structures">Additional Structures</option>
+              <option value="supplementary">Supplementary Form</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label>Replacement-cost valuation</label>
+            <select id="valuation_requested">
+              <option value="no">Not required</option>
+              <option value="yes">Include a replacement-cost valuation</option>
+            </select>
+          </div>
           <div class="field">
             <label>Reason for inspection</label>
             <select id="purpose">
@@ -205,7 +226,7 @@
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val('email'))) { setErr('form-err', 'Please enter a valid email address.'); document.getElementById('email').focus(); return; }
 
     var data = {};
-    ['requestor_name','company','email','phone','role','insured_name','location','city','province_state','postal_code','purpose','policy_number',
+    ['requestor_name','company','email','phone','role','insured_name','location','city','province_state','postal_code','purpose','policy_number','inspection_type','valuation_requested',
      'preferred_date','preferred_time','urgency','site_contact','special_instructions','comments'].forEach(function(k) { data[k] = val(k); });
 
     var btn = document.getElementById('submit-btn');
