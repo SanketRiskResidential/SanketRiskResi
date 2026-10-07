@@ -19,7 +19,7 @@ async function run(noNs){
  const o=document.getElementById('out'); o.textContent='Sending…'; document.getElementById('pdf').innerHTML='';
  try{
   const {data:{session}}=await _s.auth.getSession(); if(!session){o.textContent='Not signed in — log in on the dashboard first.';return;}
-  const r=await fetch(LAMBDA_URL,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({estimate:est,noNamespace:noNs,debug:true})});
+  const r=await fetch(LAMBDA_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({token:session.access_token,estimate:est,noNamespace:noNs,debug:true})});
   const txt=await r.text(); let j; try{j=JSON.parse(txt);}catch(e){o.textContent='HTTP '+r.status+' '+r.statusText+'\nHeaders: content-type='+r.headers.get('content-type')+'\nRaw reply ('+txt.length+' chars):\n'+txt.slice(0,2000);return;} const show={...j}; if(show.base64){show.base64='[PDF '+show.base64.length+' chars]';}
   o.textContent=JSON.stringify(show,null,2);
   if(j.base64){const a=document.createElement('a');a.href='data:application/pdf;base64,'+j.base64;a.download='e2value-test.pdf';a.textContent='Download PDF';document.getElementById('pdf').appendChild(a);}
