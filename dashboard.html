@@ -162,9 +162,14 @@
             <label>Inspection Type</label>
             <select id="n-type">
               <option value="residential_lite">Residential Lite</option>
-              <option value="residential_full" disabled>Residential (Full) — coming soon</option>
-              <option value="exterior" disabled>Exterior — coming soon</option>
-              <option value="interior_exterior" disabled>Interior / Exterior — coming soon</option>
+              <option value="residential_full">Full Residential</option>
+              <option value="residential_mh">Residential Manufactured</option>
+              <option value="residential_mh_full">Full Residential Manufactured</option>
+              <option value="exterior">Exterior</option>
+              <option value="exterior_interior">Exterior / Interior</option>
+              <option value="a_and_a">A&amp;A</option>
+              <option value="additional_structures">Additional Structures</option>
+              <option value="supplementary">Supplementary Form</option>
             </select>
           </div>
           <div class="m-field full" id="n-requestor-wrap" style="display:none;"><label>On behalf of (requestor, optional)</label><select id="n-requestor"></select></div>
@@ -209,7 +214,7 @@
   var activeTab = 'jobs';
   var logJobId = null;
 
-  var TYPE_LABELS = { residential_lite: 'Residential Lite', residential_full: 'Residential (Full)', exterior: 'Exterior', interior_exterior: 'Interior / Exterior' };
+  var TYPE_LABELS = { residential_lite: 'Residential Lite', residential_full: 'Full Residential', residential_mh: 'Residential Manufactured', residential_mh_full: 'Full Residential Manufactured', exterior: 'Exterior', exterior_interior: 'Exterior / Interior', a_and_a: 'A&A', additional_structures: 'Additional Structures', supplementary: 'Supplementary Form' };
   // Maps inspection_type -> the form file that handles it. Extend as the
   // other tiers get built; unknown types fall back to Lite.
   var FORM_FILES = { residential_lite: '/app-residential-lite.html' };
