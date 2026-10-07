@@ -1,0 +1,37 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>e2Value test</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>body{font-family:system-ui;margin:16px;max-width:900px}button{padding:10px 14px;margin:4px 4px 4px 0}pre{background:#f3f3f0;padding:10px;overflow:auto;white-space:pre-wrap;word-break:break-all}</style></head>
+<body><h2>e2Value Full Residential — test call</h2>
+<p>Sign in on the dashboard first, then open this page. It sends e2Value's own sample property.</p>
+<button onclick="run(false)">Send (with namespace)</button><button onclick="run(true)">Send (no namespace)</button>
+<div id="pdf"></div><pre id="out">Ready.</pre>
+<script>
+const LAMBDA_URL = 'PASTE_E2VALUE_LAMBDA_URL_HERE';
+const _s = supabase.createClient('https://lkihphmtyusqmnhbfswq.supabase.co','sb_publishable_X7JifOrQKvkCwGD7DQpPZg_-6jB5j3Z');
+const est = {property:{address1:'111 Test Street',address2:'',city:'Ottawa',province:'Ontario',postalcode:'K2P 1L7',locale:'beachfront',coverage_a:250000,
+architectural_style:'Brownstone',construction_quality:'average / standard',physical_shape:'complicated',construction_type:'framing, steel',recent_renovations:'no',historic_registry:'no',number_of_stories:1,
+primary_exterior:'brick masonry',secondary_exterior:'limestone',primary_roof_covering:'architectural shingle',secondary_roof_covering:'barrel tile',roof_configuration:'flat',roof_pitch:'slight',roof_age:1,foundation_type:'fieldstone',slope_of_site:'moderate',
+living_area:{year_built:1990,square_footage:1000},other_areas:{area:[{area_name:'breeze way',year_built:1990,square_footage:100}]},
+window_styles:{style:['casement','picture']},window_brands:{brand:['Custom']},chimneys:{number_of_chimneys:1,chimney_types:{type:['masonry']}},
+kitchens:{kitchen:[{area_of_home:'living area',cabinetry:'acrylic',countertops:'butcher block',backsplashes:'ceramic tile',center_island:{_attr:{value:'yes'},center_island_cabinetry:'acrylic',center_island_countertops:'butcher block'}},{area_of_home:'breeze way',cabinetry:'acrylic',countertops:'butcher block',backsplashes:'ceramic tile'}]},
+appliances:{appliance:[{appliance_name:'cooktop',appliance_brand:'Amana',quantity:1}]},number_of_baths_full:1,number_of_baths_half:0,
+bathroom_floors:{floor_type:['bluestone']},vanities:{vanity_type:['cherry vanities']},bath_countertops:{countertop_type:['Corian']},plumbing_fixtures:{fixture_type:['brass']},tub_and_showers:{type:['acrylic']},
+primary_floor_coverings:{covering_type:['antique pine','heart pine']},secondary_floor_coverings:{covering_type:['hardwood']},
+primary_interior_wall_construction:{construction_type:['masonry']},secondary_interior_wall_construction:{construction_type:['sheetrock']},average_wall_height:8,
+ceiling_construction:{construction_type:['acoustic tile']},primary_interior_wall_coverings:{covering_type:['ceramic tile']},secondary_interior_wall_coverings:{covering_type:['gold leaf']},
+wall_trim:{trim_type:['corbels']},door_types:{type:['bi-fold']},door_hardware_types:{type:['Arrow brass']},rooms_with_cabinetry:{room:['den']},lighting_fixtures:{fixture_type:['cove lighting']},
+number_of_fireplaces:1,fireplace_mantels:{mantel_type:['antique granite']},staircases:{staircase_type:['main (standard)']},miscellaneous:{item:['balcony']},alarms:{type:['local (fire)']},hvac:{type:['gas']},
+unique_items:{item:[{item_name:'gargoyle',cost:'500.00'}]},replacement_cost_type:'full',
+return_acv:{_attr:{value:'yes'},structure_in_use:'yes',condition:{general:'good',roof:'good',wall:'good',foundation:'good'}}}};
+async function run(noNs){
+ const o=document.getElementById('out'); o.textContent='Sending…'; document.getElementById('pdf').innerHTML='';
+ try{
+  const {data:{session}}=await _s.auth.getSession(); if(!session){o.textContent='Not signed in — log in on the dashboard first.';return;}
+  const r=await fetch(LAMBDA_URL,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({estimate:est,noNamespace:noNs,debug:true})});
+  const j=await r.json(); const show={...j}; if(show.base64){show.base64='[PDF '+show.base64.length+' chars]';}
+  o.textContent=JSON.stringify(show,null,2);
+  if(j.base64){const a=document.createElement('a');a.href='data:application/pdf;base64,'+j.base64;a.download='e2value-test.pdf';a.textContent='Download PDF';document.getElementById('pdf').appendChild(a);}
+ }catch(e){o.textContent='Error: '+e.message;}
+}
+</script></body></html>
