@@ -76,6 +76,17 @@
   .val-table td:last-child { font-weight: 600; text-align: right; }
   .val-credit { font-size: 11.5px; color: var(--slate); margin-top: 8px; }
   @media (max-width: 700px) { .cover { min-height: 0; } .cover .mid { margin: 40px 0; } .cover h1 { font-size: 30px; } .cover .meta { grid-template-columns: 1fr; } }
+  .legal { page-break-before: always; break-before: page; margin-top: 30px; }
+  .legal h1 { font-family: 'Playfair Display', serif; font-size: 22px; border-bottom: 3px solid var(--gold); padding-bottom: 8px; margin-bottom: 4px; }
+  .legal .lead { color: var(--slate); font-size: 12.5px; margin-bottom: 8px; }
+  .legal h2 { font-size: 13px; letter-spacing: .06em; text-transform: uppercase; margin: 18px 0 6px; }
+  .legal h3 { font-size: 13px; margin: 10px 0 2px; }
+  .legal p, .legal li { font-size: 12.5px; line-height: 1.55; margin-bottom: 6px; }
+  .legal ul { margin: 2px 0 6px 20px; }
+  .legal .cols { columns: 2; column-gap: 28px; }
+  .legal .concl { border: 1px solid var(--gold); background: var(--gold-pale); border-radius: 8px; padding: 12px 16px; margin: 8px 0; font-weight: 700; }
+  .legal .concl .amt { font-family: 'Playfair Display', serif; font-size: 22px; }
+  @media (max-width: 700px) { .legal .cols { columns: 1; } }
   @media (max-width: 700px) { .page { padding: 24px 18px; margin: 0; border: none; border-radius: 0; } .grid, .photos { grid-template-columns: 1fr; } .head { flex-direction: column; gap: 10px; } .head .logo { text-align: left; } }
   @media print {
     body { background: #fff; }
@@ -111,6 +122,57 @@
   function val(v) { return (v === null || v === undefined || v === '') ? '—' : esc(v); }
   function row(k, v, full) { return '<div class="row' + (full ? ' full' : '') + '"><span class="k">' + esc(k) + '</span><span class="v">' + val(v) + '</span></div>'; }
   function fmtDate(d) { if (!d) return '—'; var x = new Date(d.length === 10 ? d + 'T12:00:00' : d); return isNaN(x) ? String(d) : x.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }); }
+
+
+  // ── Valuation disclosure & legal pages (text supplied by Sanket Risk) ──
+  function dollarsInWords(n) {
+    n = Math.round(Number(n)); if (!isFinite(n) || n < 0) return '';
+    if (n === 0) return 'Zero';
+    var ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+    var tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+    function below1000(x) {
+      var s = '';
+      if (x >= 100) { s += ones[Math.floor(x / 100)] + ' Hundred'; x %= 100; if (x) s += ' '; }
+      if (x >= 20) { s += tens[Math.floor(x / 10)] + (x % 10 ? '-' + ones[x % 10] : ''); }
+      else if (x) s += ones[x];
+      return s;
+    }
+    var parts = [], units = [[1e9, 'Billion'], [1e6, 'Million'], [1e3, 'Thousand']];
+    units.forEach(function(u) { if (n >= u[0]) { parts.push(below1000(Math.floor(n / u[0])) + ' ' + u[1]); n %= u[0]; } });
+    if (n) parts.push(below1000(n));
+    return parts.join(' ');
+  }
+  function legalPages(r, f, vr, address) {
+    var hasVal = vr && vr.status === 'success' && vr.fields && vr.fields.replacement_cost;
+    var rcNum = hasVal ? Number(String(vr.fields.replacement_cost).replace(/[$,\s]/g, '')) : NaN;
+    var valDate = fmtDate(r.inspection_date);
+    var reportDate = fmtDate(r.released_at || new Date().toISOString());
+    var vi = f.valuation_inputs || {};
+    var desc = [vi.style, f.square_footage ? Number(f.square_footage).toLocaleString() + ' sq ft' : '', f.year_built ? 'built ' + f.year_built : ''].filter(Boolean).join(', ');
+    var h = '<div class="legal"><h1>Valuation Disclosure &amp; Limiting Conditions</h1><div class="lead">' + esc(reportDate) + '</div>';
+    if (hasVal) {
+      h += '<p>In accordance with your authorization, we have made an insurance inspection and/or valuation of the building located at ' + esc(address || '—') + ' and have prepared this report as the results of our investigation.</p>' +
+        '<h2>Preface</h2><p>Property values having a reasonable degree of accuracy are important. Unintentionally, understated values have resulted in protracted claim settlements and/or significantly reduced settlements. Overstated values translate into higher insurance premium costs. Adequately stated values are also a necessary factor in analyzing a facility’s Maximum Foreseeable Loss (MFL) and Normal Loss Expectancy (NLE), two concepts widely used in risk management and insurance underwriting applications.</p>' +
+        '<h2>Qualification</h2><p>Building valuations are based on a specialized computer program subscribed from e2Value and/or CoreLogic/Cotality, which are well-recognized firms in the building valuation field. The estimates calculate replacement cost and take into account many aspects of a building’s characteristics such as construction, heating system, gross floor area, architect’s fees and occupancy. Estimates do not include, for example, unique construction, outdoor grounds improvements and contents items such as objects of art, instruments, autos, fencing, furniture, drapes, kitchen/laundry equipment etc., unless otherwise declared. Results promulgated should be considered as a basis for a formalized review and a final decision on a valuation is solely the inspection requestor’s responsibility.</p>' +
+        '<h2>Purpose of the Valuation</h2><p>This valuation study was required to evaluate the subject property, for the purpose of evidencing the Replacement Cost for insurance purposes.</p>' +
+        '<h2>Valuation Date</h2><p>The valuation report was completed on <strong>' + esc(reportDate) + '</strong> and dated as of the date of the inspection of the property (<strong>' + esc(valDate) + '</strong>).</p>' +
+        '<h2>Property Description</h2><p>The subject property reviewed is <strong>' + esc(address || '—') + '</strong>' + (desc ? ' (' + esc(desc) + ')' : '') + '.</p>' +
+        '<h2>Property Inclusions</h2><div class="cols"><h3>Hard Costs</h3><ul><li>Labor rates for up to 19 construction trades</li><li>Provincial and Federal Taxes</li><li>Material Costs for: Foundations; Floors; Walls; Roof; Interior/Exterior Finishes; Mechanical Systems including Fire Protection, Electrical, Heating/Cooling</li></ul>' +
+        '<h3>Soft Costs</h3><ul><li>Overhead and Profit</li><li>Architectural/Engineers Fees</li><li>Plan Checks and Permits</li><li>Site Specific/Process Related Costs: Construction Process; Time Urgency; Limited Site Mobility; Adjoining Non-Construction Areas; Economies of Scale; Dangerous/Hazardous Materials; Mold Concerns</li></ul></div>' +
+        '<h2>Property Exclusions</h2><p>Items not included in this report consist of the following:</p><div class="cols"><ul><li>Land</li><li>Site Remediation</li><li>Roadways/Sidewalks</li><li>Parking Areas</li><li>Property Signs</li><li>Debris Removal</li><li>Overhead Cranes or Craneways</li><li>Utility Connections</li><li>Landscaping</li><li>Flagpoles/Ornamentations</li><li>Demolition</li><li>Inventory</li><li>Occupants Content’s</li><li>Furniture &amp; Equipment</li></ul></div>' +
+        '<h2>Insurance to Value</h2><p><strong>The definition of value for this review will be Replacement Cost: defined as the amount (in Canadian dollars) required to construct or replace at one time an entire building of equal quality and utility. Modern materials and current methods, designs and layouts are used for replacement. Replacement cost does not take into consideration improvements necessary to conform to changed building codes, demolition, debris removal, site accessibility or site work, reuse of building components or services, overtime, bonuses for labor, soft costs, extraordinary fees, premiums for materials, or other contingencies. For insurance purposes the prices used for labor, materials, overhead, profit, and fees are those in effect immediately prior to the loss.</strong></p>' +
+        '<h2>Approach to Value</h2><p>There are three standard types of value most often recognized in commercial/industrial properties, those being the market value, replacement cost and income value. Since insurance premiums are normally based on replacement costs, that will be the sole value presented in this report.</p>' +
+        '<h2>Scope of Work</h2><p>In completing our analysis and estimate, a personal site inspection of the property was conducted.</p><p>During the site inspection we completed a review of the architectural and/or construction components and building services associated with the property.</p><p>In conjunction with the above, we have considered, as applicable the following factors:</p><ul><li>Size and complexity of design/build of the subject property.</li><li>Construction, type, and age of the subject property.</li><li>Quality of materials and workmanship.</li><li>Current local and national applicable taxes.</li></ul>' +
+        '<p><strong>The Corelogic/Cotality valuation software uses a “Total Component Methodology” to develop construction costs. This concept constructs a building component-by-component, meeting the requirements for the specific location, the construction type and the stated occupancy.</strong></p>' +
+        '<h2>Conclusion of Value</h2><p><strong>The conclusions presented in this report are estimates based on data available or assembled by the inspector. These conclusions must be considered opinions and not facts. The distribution of the total valuation reported between various asset components herein applies only under the existing project. Based on consideration of the factors indicated and valuation procedures employed, it is our opinion that the replacement cost of the property as of ' + esc(valDate) + ' is reasonably stated in the amount of:</strong></p>' +
+        (isFinite(rcNum) ? '<div class="concl">(' + esc(dollarsInWords(rcNum)) + ' dollars)<div class="amt">$' + Math.round(rcNum).toLocaleString() + '</div></div>' : '');
+    }
+    h += '<h2>Authorized Use and Users of Report</h2><p>Given the purpose and function of this report, intended users would include our client, and both the insurance broker and insurer of record. Liability to unintended users, or unintended uses of this report is expressly denied.</p>' +
+      '<h2>Assumptions and Limiting Conditions</h2><p>The conclusions expressed in this valuation report are subject to the following assumptions and limiting conditions:</p><ul>' +
+      '<li>We have made no investigation of zoning by laws, legal restrictions, ordinances or other matters which are legal in nature that may or may not have an effect on the Construction Cost of the building. No legal survey, engineering reports, soil analysis, geological studies, chemical hazard inspections were ordered or made in conjunction with this report. No environmental impact study has been ordered or made. Cost of financing during the time of construction has not been a consideration in this report.</li>' +
+      '<li>Physical descriptions, dimensional data and photographs included in this report are not to be considered as legal descriptions, survey measurements, or a complete photographic record, they are included only to assist the reader in visualizing the property. Plans, drawings, dimensional data and opinions provided by others, although furnished by reliable sources and assumed to be correct, have not necessarily been verified, and no responsibility is assumed for their accuracy or other matters which are legal in nature. The conclusions presented in this report are estimates based on the data available or assembled by the inspector. These conditions must be considered opinions and not facts.</li></ul></div>';
+    return h;
+  }
 
   function render(r) {
     var f = r.form_data || {};
@@ -178,6 +240,7 @@
       }).join('') + '</div>';
     }
 
+    html += legalPages(r, f, vr, address);
     html += '<div class="foot"><span>Generated ' + esc(new Date().toLocaleDateString()) + '</span><span>Report ID ' + esc(String(r.id).slice(0, 8)) + '</span></div></div>';
     document.getElementById('root').innerHTML = html;
     document.title = 'Inspection Report — ' + (r.insured_name || 'Residential');
