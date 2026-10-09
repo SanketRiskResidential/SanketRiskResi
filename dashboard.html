@@ -217,8 +217,8 @@
   var TYPE_LABELS = { residential_lite: 'Residential Lite', residential_full: 'Full Residential', residential_mh: 'Residential Manufactured', residential_mh_full: 'Full Residential Manufactured', exterior: 'Exterior', exterior_interior: 'Exterior / Interior', a_and_a: 'A&A', additional_structures: 'Additional Structures', supplementary: 'Supplementary Form' };
   // Maps inspection_type -> the form file that handles it. Extend as the
   // other tiers get built; unknown types fall back to Lite.
-  var FORM_FILES = { residential_lite: '/app-residential-lite.html' };
-  function formFileFor(t) { return FORM_FILES[t] || FORM_FILES.residential_lite; }
+  var FORM_FILES = { residential_lite: '/app-residential-lite.html', residential_full: '/app-residential-full.html', supplementary: '/app-residential-supplement.html' };
+  function formFileFor(t) { return FORM_FILES[t] || null; }
 
   // Everything that comes from the database is escaped before it is put on the
   // page — requestors can now type text that staff will see.
@@ -586,7 +586,9 @@
   // ── Navigation helpers ──
   function openJob(id) {
     var r = jobs.find(function(x) { return x.id === id; });
-    window.location.href = formFileFor(r ? r.inspection_type : null) + '?id=' + encodeURIComponent(id);
+    var file = formFileFor(r ? r.inspection_type : null);
+    if (!file) { showToast('⚠ The ' + (TYPE_LABELS[r && r.inspection_type] || 'selected') + ' form is not available yet. Please contact the administrator.'); return; }
+    window.location.href = file + '?id=' + encodeURIComponent(id);
   }
   function viewReport(id) { window.open('/report-residential-lite.html?id=' + encodeURIComponent(id), '_blank'); }
 
