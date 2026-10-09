@@ -243,6 +243,13 @@
       <div class="field full"><label>Hazard Notes</label><textarea id="hazard-notes" placeholder="Any additional detail on the above..."></textarea></div>
     </div>
 
+    <div class="card" id="supp-toggle-card">
+      <div class="card-title">Supplementary Form</div>
+      <label style="display:flex;gap:10px;align-items:center;font-size:14px;cursor:pointer;"><input type="checkbox" id="supp-include" onchange="toggleSupp()" style="width:18px;height:18px;"> Include the Supplementary Form with this inspection</label>
+      <div id="supp-hint" style="font-size:12.5px;color:var(--slate);margin-top:6px;"></div>
+    </div>
+    <div id="supp-sections" style="display:none;"></div>
+
     <div class="card">
       <div class="card-title">Overall Assessment</div>
       <div class="form-grid" style="margin-bottom:16px;">
@@ -319,6 +326,7 @@
 
   <div class="toast" id="toast"></div>
 
+<script src="/residential-supplement-sections.js"></script>
 <script>
   const SUPABASE_URL = 'https://lkihphmtyusqmnhbfswq.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_X7JifOrQKvkCwGD7DQpPZg_-6jB5j3Z';
@@ -655,6 +663,15 @@
     } finally { btn.disabled = false; }
   }
 
+  // ── Optional Supplementary Form (sections defined in residential-supplement-sections.js) ──
+  var suppRendered = false;
+  function toggleSupp() {
+    var on = document.getElementById('supp-include').checked;
+    if (on && !suppRendered) { renderSuppSections(); suppRendered = true; }
+    document.getElementById('supp-sections').style.display = on ? 'block' : 'none';
+  }
+  function collectSuppIfIncluded() { var c = document.getElementById('supp-include'); return (c && c.checked && suppRendered) ? collectSupp() : {}; }
+
   // ── Save / Load ──
   function collectFormData() {
     const get = id => { var el = document.getElementById(id); return el ? el.value : ''; };
@@ -672,6 +689,8 @@
       exterior_condition: get('exterior-condition'),
       site_hazards: getCheckGroupValues('site-hazards'),
       hazard_notes: get('hazard-notes'),
+      supp_included: !!(document.getElementById('supp-include') && document.getElementById('supp-include').checked),
+      supp: collectSuppIfIncluded(),
       overall_condition: get('overall-condition'),
       risk_quality: getRadioGroupValue('risk-quality'),
       valuation_inputs: collectValInputs(),
@@ -879,6 +898,10 @@
     set('exterior-condition', fd.exterior_condition);
     set('hazard-notes', fd.hazard_notes);
     set('overall-condition', fd.overall_condition);
+    var reqSupp = !!(data.request_details && data.request_details.supplement_requested);
+    var wantSupp = fd.supp_included === true || (fd.supp_included == null && reqSupp);
+    if (wantSupp) { document.getElementById('supp-include').checked = true; toggleSupp(); loadSupp(fd.supp); }
+    if (reqSupp) document.getElementById('supp-hint').textContent = 'The requestor asked for the Supplementary Form with this inspection.';
     (fd.site_hazards || []).forEach(function(label) {
       document.querySelectorAll('#site-hazards .check-btn').forEach(function(b) {
         if (b.textContent.trim() === label) b.classList.add('selected');
