@@ -609,6 +609,8 @@
       if (d.purpose) lines.push('<strong>Reason:</strong> ' + esc(d.purpose) + (d.policy_number ? ' · Policy ' + esc(d.policy_number) : ''));
       if (d.preferred_date || d.preferred_time) lines.push('<strong>Preferred visit:</strong> ' + esc([d.preferred_date, d.preferred_time].filter(Boolean).join(' · ')));
       if (d.urgency) lines.push('<strong>Urgency:</strong> ' + esc(d.urgency));
+      if (d.valuation_requested) lines.push('<strong>Valuation:</strong> requested');
+      if (d.supplement_requested) lines.push('<strong>Supplementary Form:</strong> requested');
       if (d.site_contact) lines.push('<strong>Contact at property:</strong> ' + esc(d.site_contact));
       if (r.requestor_notes) lines.push('<strong>Access notes / instructions:</strong> ' + esc(r.requestor_notes));
       if (d.comments) lines.push('<strong>Comments:</strong> ' + esc(d.comments));
