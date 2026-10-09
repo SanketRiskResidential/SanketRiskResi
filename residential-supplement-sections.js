@@ -118,3 +118,54 @@ window.SUPP_SECTIONS = [
     { id: 'wind_hazards', label: 'Wind Hazards — Large Tents / Canopies', type: 'select', options: YN }
   ]}
 ];
+
+// ── Shared form helpers (used by the Supplement, Lite and Full forms) ──
+// Expect the host page to define esc(), toggleCheck() and getCheckGroupValues().
+function renderSuppSections() {
+  var host = document.getElementById('supp-sections');
+  if (!host || !window.SUPP_SECTIONS) return;
+  host.innerHTML = window.SUPP_SECTIONS.map(function(sec) {
+    var fields = sec.fields.map(function(fl) {
+      var id = 'supp-' + fl.id;
+      if (fl.type === 'select') {
+        return '<div class="field"><label>' + esc(fl.label) + '</label><select id="' + id + '"><option value="">— Select —</option>' +
+          fl.options.map(function(o) { return '<option>' + esc(o) + '</option>'; }).join('') + '</select></div>';
+      }
+      if (fl.type === 'multi') {
+        return '<div class="field full"><label>' + esc(fl.label) + '</label><div class="check-group" id="' + id + '">' +
+          fl.options.map(function(o) { return '<div class="check-btn" onclick="toggleCheck(this)">' + esc(o) + '</div>'; }).join('') + '</div></div>';
+      }
+      if (fl.type === 'textarea') return '<div class="field full"><label>' + esc(fl.label) + '</label><textarea id="' + id + '" rows="3"></textarea></div>';
+      if (fl.type === 'number') return '<div class="field"><label>' + esc(fl.label) + '</label><input id="' + id + '" type="number"' + (fl.min != null ? ' min="' + fl.min + '"' : '') + (fl.max != null ? ' max="' + fl.max + '"' : '') + '></div>';
+      return '<div class="field"><label>' + esc(fl.label) + '</label><input id="' + id + '" type="text"></div>';
+    }).join('');
+    var note = sec.note ? '<div class="note-box"><label>NOTE</label><textarea id="supp-' + sec.id + '_note" rows="3" placeholder="Anything else worth recording for this section…"></textarea></div>' : '';
+    return '<div class="card"><div class="card-title">' + esc(sec.title) + '</div><div class="form-grid">' + fields + '</div>' + note + '</div>';
+  }).join('');
+}
+function collectSupp() {
+  var out = {};
+  (window.SUPP_SECTIONS || []).forEach(function(sec) {
+    sec.fields.forEach(function(fl) {
+      var id = 'supp-' + fl.id;
+      if (fl.type === 'multi') { var v = getCheckGroupValues(id); if (v.length) out[fl.id] = v; }
+      else { var el = document.getElementById(id); if (el && String(el.value).trim() !== '') out[fl.id] = el.value; }
+    });
+    if (sec.note) { var n = document.getElementById('supp-' + sec.id + '_note'); if (n && n.value.trim()) out[sec.id + '_note'] = n.value; }
+  });
+  return out;
+}
+function loadSupp(d) {
+  if (!d) return;
+  (window.SUPP_SECTIONS || []).forEach(function(sec) {
+    sec.fields.forEach(function(fl) {
+      var id = 'supp-' + fl.id, v = d[fl.id];
+      if (v == null) return;
+      if (fl.type === 'multi') {
+        document.querySelectorAll('#' + id + ' .check-btn').forEach(function(b) { if (v.indexOf(b.textContent.trim()) !== -1) b.classList.add('selected'); });
+      } else { var el = document.getElementById(id); if (el) el.value = v; }
+    });
+    if (sec.note && d[sec.id + '_note'] != null) { var n = document.getElementById('supp-' + sec.id + '_note'); if (n) n.value = d[sec.id + '_note']; }
+  });
+}
+
