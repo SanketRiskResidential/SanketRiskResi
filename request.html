@@ -125,6 +125,13 @@
               <option value="yes">Include a replacement-cost valuation</option>
             </select>
           </div>
+          <div class="field full">
+            <label>Supplementary form</label>
+            <select id="supplement_requested">
+              <option value="no">Not required</option>
+              <option value="yes">Include the Supplementary Form (occupancy, utilities, security, fire protection, liability)</option>
+            </select>
+          </div>
           <div class="field">
             <label>Reason for inspection</label>
             <select id="purpose">
@@ -226,7 +233,7 @@
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val('email'))) { setErr('form-err', 'Please enter a valid email address.'); document.getElementById('email').focus(); return; }
 
     var data = {};
-    ['requestor_name','company','email','phone','role','insured_name','location','city','province_state','postal_code','purpose','policy_number','inspection_type','valuation_requested',
+    ['requestor_name','company','email','phone','role','insured_name','location','city','province_state','postal_code','purpose','policy_number','inspection_type','valuation_requested','supplement_requested',
      'preferred_date','preferred_time','urgency','site_contact','special_instructions','comments'].forEach(function(k) { data[k] = val(k); });
 
     var btn = document.getElementById('submit-btn');
