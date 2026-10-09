@@ -152,7 +152,7 @@
     var valDate = fmtDate(r.inspection_date);
     var reportDate = fmtDate(r.released_at || new Date().toISOString());
     var vi = f.valuation_inputs || {};
-    var desc = [vi.style, f.square_footage ? Number(f.square_footage).toLocaleString() + ' sq ft' : '', f.year_built ? 'built ' + f.year_built : ''].filter(Boolean).join(', ');
+    var desc = [vi.style || (vi.fields && vi.fields.architectural_style), f.square_footage ? Number(f.square_footage).toLocaleString() + ' sq ft' : '', f.year_built ? 'built ' + f.year_built : ''].filter(Boolean).join(', ');
     var h = '<div class="legal"><h1>Valuation Disclosure &amp; Limiting Conditions</h1><div class="lead">' + esc(reportDate) + '</div>';
     if (hasVal) {
       h += '<p>In accordance with your authorization, we have made an insurance inspection and/or valuation of the building located at ' + esc(address || '—') + ' and have prepared this report as the results of our investigation.</p>' +
