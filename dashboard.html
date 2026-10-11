@@ -217,7 +217,9 @@
   var TYPE_LABELS = { residential_lite: 'Residential Lite', residential_full: 'Full Residential', residential_mh: 'Residential Manufactured', residential_mh_full: 'Full Residential Manufactured', exterior: 'Exterior', exterior_interior: 'Exterior / Interior', a_and_a: 'A&A', additional_structures: 'Additional Structures', supplementary: 'Supplementary Form' };
   // Maps inspection_type -> the form file that handles it. Extend as the
   // other tiers get built; unknown types fall back to Lite.
-  var FORM_FILES = { residential_lite: '/app-residential-lite.html', residential_full: '/app-residential-full.html', supplementary: '/app-residential-supplement.html' };
+  var FORM_FILES = { residential_lite: '/app-residential-lite.html', residential_full: '/app-residential-full.html', supplementary: '/app-residential-supplement.html',
+    residential_mh: '/app-residential-generic.html', residential_mh_full: '/app-residential-generic.html', exterior: '/app-residential-generic.html',
+    exterior_interior: '/app-residential-generic.html', a_and_a: '/app-residential-generic.html', additional_structures: '/app-residential-generic.html' };
   function formFileFor(t) { return FORM_FILES[t] || null; }
 
   // Everything that comes from the database is escaped before it is put on the
