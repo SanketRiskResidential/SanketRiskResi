@@ -8,6 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/residential-full-sections.js"></script>
 <script src="/residential-supplement-sections.js"></script>
+<script src="/residential-type-sections.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -218,10 +219,29 @@
       row('Year built', f.year_built) + row('Approx. square footage', f.square_footage ? Number(f.square_footage).toLocaleString() + ' sq ft' : '') +
       row('Number of storeys', f.storeys) + row('Foundation', f.foundation_type) + '</div>';
 
-    html += '<h2>Roof</h2><div class="grid">' + row('Type / material', f.roof_type) + row('Age', f.roof_age_status) + row('Condition', f.roof_condition) + '</div>';
-    html += '<h2>Exterior</h2><div class="grid">' + row('Siding / cladding', f.siding_material) + row('Condition', f.exterior_condition) + '</div>';
+    if (f.roof_type || f.roof_age_status || f.roof_condition) html += '<h2>Roof</h2><div class="grid">' + row('Type / material', f.roof_type) + row('Age', f.roof_age_status) + row('Condition', f.roof_condition) + '</div>';
+    if (f.siding_material || f.exterior_condition) html += '<h2>Exterior</h2><div class="grid">' + row('Siding / cladding', f.siding_material) + row('Condition', f.exterior_condition) + '</div>';
 
     }
+    var td = f.typed || {};
+    Object.keys(window.TYPE_SECTIONS || {}).forEach(function(sid) {
+      var sec = window.TYPE_SECTIONS[sid], o = td[sid];
+      if (!o) return;
+      var rows = '', notes = '', tables = '';
+      sec.fields.forEach(function(fl) {
+        var v = o[fl.id];
+        if (v == null || v === '' || (Array.isArray(v) && !v.length)) return;
+        if (fl.type === 'textarea') { notes += '<div class="note"><strong>' + esc(fl.label) + ':</strong> ' + esc(v) + '</div>'; return; }
+        if (fl.type === 'rows') {
+          tables += '<table class="val-table"><tr>' + fl.cols.map(function(c) { return '<td style="font-weight:600;">' + esc(c.label) + '</td>'; }).join('') + '</tr>' +
+            v.map(function(rw) { return '<tr>' + fl.cols.map(function(c) { return '<td>' + val(rw[c.id]) + '</td>'; }).join('') + '</tr>'; }).join('') + '</table>';
+          return;
+        }
+        rows += row(fl.label, Array.isArray(v) ? v.join(', ') : v, fl.type === 'multi');
+      });
+      if (rows || notes || tables) html += '<h2>' + esc(sec.title) + '</h2>' + (rows ? '<div class="grid">' + rows + '</div>' : '') + tables + notes;
+    });
+
     var fullData = f.full || {};
     (window.FULL_SECTIONS || []).forEach(function(sec) {
       var rows = '', notes = '';
