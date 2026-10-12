@@ -44,6 +44,9 @@
   .field textarea { min-height: 70px; resize: vertical; }
   .check-group { display: flex; flex-wrap: wrap; gap: 8px; }
   .check-btn { padding: 7px 14px; border: 1px solid var(--border); border-radius: 20px; font-size: 12.5px; cursor: pointer; background: #fff; color: var(--slate); transition: all .15s; user-select: none; }
+  .note-box { margin-top:14px; background: var(--gold-pale); border-left: 3px solid var(--gold); border-radius: 6px; padding: 10px 12px; }
+  .note-box label { display:block; font-size:11px; font-weight:600; letter-spacing:.08em; color: var(--gold); margin-bottom:6px; }
+  .note-box textarea { width:100%; border:1px solid var(--border); border-radius:6px; padding:8px 10px; font-family:inherit; font-size:13.5px; background:#fff; }
   .check-btn.selected { background: var(--navy); color: #fff; border-color: var(--navy); }
   .radio-group { display: flex; flex-wrap: wrap; gap: 8px; }
   .radio-btn { padding: 8px 16px; border: 1px solid var(--border); border-radius: 20px; font-size: 12.5px; cursor: pointer; background: #fff; color: var(--slate); transition: all .15s; user-select: none; }
@@ -191,6 +194,7 @@
           </select>
         </div>
       </div>
+      <div class="note-box"><label>NOTES</label><textarea id="exterior-notes" rows="3" placeholder="Anything else worth recording about the exterior…"></textarea></div>
     </div>
 
     <div class="card" id="valuation-card">
@@ -687,6 +691,7 @@
       siding_material: get('siding-material'),
       foundation_type: get('foundation-type'),
       exterior_condition: get('exterior-condition'),
+      exterior_notes: get('exterior-notes'),
       site_hazards: getCheckGroupValues('site-hazards'),
       hazard_notes: get('hazard-notes'),
       supp_included: !!(document.getElementById('supp-include') && document.getElementById('supp-include').checked),
@@ -896,6 +901,7 @@
     set('siding-material', fd.siding_material);
     set('foundation-type', fd.foundation_type);
     set('exterior-condition', fd.exterior_condition);
+    set('exterior-notes', fd.exterior_notes);
     set('hazard-notes', fd.hazard_notes);
     set('overall-condition', fd.overall_condition);
     var reqSupp = !!(data.request_details && data.request_details.supplement_requested);
