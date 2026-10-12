@@ -9,6 +9,7 @@
 <script src="/residential-full-sections.js"></script>
 <script src="/residential-supplement-sections.js"></script>
 <script src="/residential-type-sections.js"></script>
+<script src="/residential-exterior-fields.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -220,7 +221,7 @@
       row('Number of storeys', f.storeys) + row('Foundation', f.foundation_type) + '</div>';
 
     if (f.roof_type || f.roof_age_status || f.roof_condition) html += '<h2>Roof</h2><div class="grid">' + row('Type / material', f.roof_type) + row('Age', f.roof_age_status) + row('Condition', f.roof_condition) + '</div>';
-    if (f.siding_material || f.exterior_condition) html += '<h2>Exterior</h2><div class="grid">' + row('Siding / cladding', f.siding_material) + row('Condition', f.exterior_condition) + '</div>';
+    if (f.siding_material || f.exterior_condition || f.exterior_notes) html += '<h2>Exterior</h2><div class="grid">' + row('Siding / cladding', f.siding_material) + row('Condition', f.exterior_condition) + '</div>' + (f.exterior_notes ? '<div class="note-box"><span class="nl">NOTES</span>' + esc(f.exterior_notes) + '</div>' : '');
 
     }
     var td = f.typed || {};
