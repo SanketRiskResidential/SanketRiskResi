@@ -46,6 +46,8 @@
   .risk .val { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; }
   h2 { font-family: 'Playfair Display', serif; font-size: 17px; margin: 26px 0 10px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 30px; }
+  .rowcard { border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px 6px; margin: 12px 0; page-break-inside: avoid; }
+  .rowcard .rc-title { font-weight: 700; font-size: 13.5px; margin-bottom: 4px; }
   .row { display: flex; justify-content: space-between; gap: 14px; padding: 6px 0; border-bottom: 1px dotted var(--border); }
   .row .k { color: var(--slate); font-size: 12.5px; }
   .row .v { font-weight: 600; text-align: right; }
@@ -240,6 +242,14 @@
         var v = o[fl.id];
         if (v == null || v === '' || (Array.isArray(v) && !v.length)) return;
         if (fl.type === 'textarea') { notes += '<div class="note"><strong>' + esc(fl.label) + ':</strong> ' + esc(v) + '</div>'; return; }
+        if (fl.type === 'rows' && fl.cols.length > 5) {
+          tables += v.map(function(rw, i) {
+            var title = rw.kind || rw.name || rw.area || ('Item ' + (i + 1));
+            var cells = fl.cols.filter(function(c) { return rw[c.id] != null && rw[c.id] !== '' && rw[c.id] !== title; }).map(function(c) { return row(c.label.replace(/ \(.*\)$/, ''), rw[c.id]); }).join('');
+            return '<div class="rowcard"><div class="rc-title">' + esc((fl.add || 'Item').replace(/^Add /, '').replace(/^./, function(ch) { return ch.toUpperCase(); })) + ' ' + (i + 1) + ': ' + esc(title) + '</div><div class="grid">' + cells + '</div></div>';
+          }).join('');
+          return;
+        }
         if (fl.type === 'rows') {
           tables += '<table class="val-table"><tr>' + fl.cols.map(function(c) { return '<td style="font-weight:600;">' + esc(c.label) + '</td>'; }).join('') + '</tr>' +
             v.map(function(rw) { return '<tr>' + fl.cols.map(function(c) { return '<td>' + val(rw[c.id]) + '</td>'; }).join('') + '</tr>'; }).join('') + '</table>';
