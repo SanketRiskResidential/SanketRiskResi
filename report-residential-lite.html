@@ -14,6 +14,7 @@
 <script src="/residential-manufactured-fields.js"></script>
 <script src="/residential-exterior-mh-fields.js"></script>
 <script src="/residential-aa-fields.js"></script>
+<script src="/residential-aa-full-fields.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -121,7 +122,7 @@
   const SUPABASE_KEY = 'sb_publishable_X7JifOrQKvkCwGD7DQpPZg_-6jB5j3Z';
   const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  var TYPE_LABELS = { residential_lite: 'Residential Lite', residential_full: 'Full Residential', residential_mh: 'Residential Manufactured', residential_mh_full: 'Full Residential Manufactured', exterior: 'Exterior', exterior_mh: 'Exterior Manufactured', exterior_interior: 'Exterior / Interior', a_and_a: 'A&A', additional_structures: 'Additional Structures', supplementary: 'Supplementary Form' };
+  var TYPE_LABELS = { residential_lite: 'Residential Lite', residential_full: 'Full Residential', residential_mh: 'Residential Manufactured', residential_mh_full: 'Full Residential Manufactured', exterior: 'Exterior', exterior_mh: 'Exterior Manufactured', a_and_a_full: 'Full A&A', exterior_interior: 'Exterior / Interior', a_and_a: 'A&A', additional_structures: 'Additional Structures', supplementary: 'Supplementary Form' };
 
   // Everything is escaped before going into the page.
   function esc(s) {
