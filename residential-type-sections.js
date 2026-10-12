@@ -9,6 +9,7 @@ window.TYPE_PROFILES = {
   residential_mh:        { title: 'Manufactured Home Inspection',         roof: true,  exterior: true,  hazards: true, full: [],                                  extra: ['manufactured'] },
   residential_mh_full:   { title: 'Full Manufactured Home Inspection',    roof: true,  exterior: true,  hazards: true, full: 'all',                               extra: ['manufactured'] },
   exterior:              { title: 'Exterior Inspection',                  roof: true,  exterior: true,  hazards: true, full: ['features', 'protection'],          extra: [] },
+  exterior_mh:           { title: 'Exterior Manufactured Home Inspection', roof: true, exterior: true,  hazards: true, full: ['features', 'protection'],          extra: ['manufactured', 'exterior_mh_rating'] },
   exterior_interior:     { title: 'Exterior / Interior Inspection',       roof: true,  exterior: true,  hazards: true, full: ['structure', 'heating', 'electrical', 'plumbing', 'protection', 'features'], extra: ['interior'] },
   a_and_a:               { title: 'Additions & Alterations Inspection',   roof: true,  exterior: true,  hazards: true, full: ['structure'],                       extra: ['additions'] },
   additional_structures: { title: 'Additional Structures Inspection',     roof: false, exterior: false, hazards: true, full: [],                                  extra: ['structures'] }
