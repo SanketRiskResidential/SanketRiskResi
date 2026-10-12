@@ -10,6 +10,7 @@
 <script src="/residential-supplement-sections.js"></script>
 <script src="/residential-type-sections.js"></script>
 <script src="/residential-exterior-fields.js"></script>
+<script src="/residential-interior-fields.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -230,6 +231,7 @@
       if (!o) return;
       var rows = '', notes = '', tables = '';
       sec.fields.forEach(function(fl) {
+        if (fl.type === 'heading') return;
         var v = o[fl.id];
         if (v == null || v === '' || (Array.isArray(v) && !v.length)) return;
         if (fl.type === 'textarea') { notes += '<div class="note"><strong>' + esc(fl.label) + ':</strong> ' + esc(v) + '</div>'; return; }
@@ -240,6 +242,7 @@
         }
         rows += row(fl.label, Array.isArray(v) ? v.join(', ') : v, fl.type === 'multi');
       });
+      if (sec.note && o.note) notes += '<div class="note-box"><span class="nl">NOTES</span>' + esc(o.note) + '</div>';
       if (rows || notes || tables) html += '<h2>' + esc(sec.title) + '</h2>' + (rows ? '<div class="grid">' + rows + '</div>' : '') + tables + notes;
     });
 
