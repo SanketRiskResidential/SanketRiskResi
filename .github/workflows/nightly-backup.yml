@@ -1,1 +1,48 @@
-
+name: Nightly backup
+on:
+  schedule:
+    - cron: "30 18 * * *"      # 18:30 UTC = 01:30 Thailand time, every night
+  workflow_dispatch: {}          # lets you press "Run workflow" for a test
+permissions:
+  contents: write
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+      ONEDRIVE_CLIENT_ID: ${{ secrets.ONEDRIVE_CLIENT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL 17 client
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client-17
+      - name: Back up database and files
+        run: |
+          STAMP=$(date -u +%F)
+          python backup/backup.py raw.tar.gz
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$BACKUP_PASSPHRASE" -c --cipher-algo AES256 -o "sanket-residential-$STAMP.tar.gz.gpg" raw.tar.gz
+          rm -rf raw.tar.gz work
+          ls -l sanket-residential-*.gpg
+      - name: Keep a 30-day copy in GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: sanket-residential-backup
+          path: sanket-residential-*.tar.gz.gpg
+          retention-days: 30
+      - name: Copy to OneDrive
+        if: env.ONEDRIVE_CLIENT_ID != ''
+        run: |
+          mkdir -p state
+          git fetch origin backup-state 2>/dev/null && git show origin/backup-state:onedrive.gpg > state/onedrive.gpg || true
+          python backup/onedrive.py upload sanket-residential-*.tar.gz.gpg
+          # keep the refreshed sign-in token on a side branch (does not redeploy the website)
+          rm -rf /tmp/st && mkdir /tmp/st && cp state/onedrive.gpg /tmp/st/ && cd /tmp/st && git init -q && git checkout -q -b backup-state && git add . \
+            && git -c user.name=backup -c user.email=backup@users.noreply.github.com commit -qm "token" \
+            && git push -f -q "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" backup-state
