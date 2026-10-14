@@ -7,14 +7,15 @@ permissions:
   contents: write
 jobs:
   backup:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
       BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
-      ONEDRIVE_CLIENT_ID: ${{ secrets.ONEDRIVE_CLIENT_ID }}
+      GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
+      GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
     steps:
       - uses: actions/checkout@v4
       - name: Install PostgreSQL 17 client
@@ -37,13 +38,13 @@ jobs:
           name: sanket-residential-backup
           path: sanket-residential-*.tar.gz.gpg
           retention-days: 30
-      - name: Copy to OneDrive
-        if: env.ONEDRIVE_CLIENT_ID != ''
+      - name: Copy to Google Drive
+        if: env.GDRIVE_CLIENT_ID != ''
         run: |
           mkdir -p state
-          git fetch origin backup-state 2>/dev/null && git show origin/backup-state:onedrive.gpg > state/onedrive.gpg || true
-          python backup/onedrive.py upload sanket-residential-*.tar.gz.gpg
+          git fetch origin backup-state 2>/dev/null && git show origin/backup-state:gdrive.gpg > state/gdrive.gpg || true
+          python backup/gdrive.py upload sanket-residential-*.tar.gz.gpg
           # keep the refreshed sign-in token on a side branch (does not redeploy the website)
-          rm -rf /tmp/st && mkdir /tmp/st && cp state/onedrive.gpg /tmp/st/ && cd /tmp/st && git init -q && git checkout -q -b backup-state && git add . \
+          rm -rf /tmp/st && mkdir /tmp/st && cp state/gdrive.gpg /tmp/st/ && cd /tmp/st && git init -q && git checkout -q -b backup-state && git add . \
             && git -c user.name=backup -c user.email=backup@users.noreply.github.com commit -qm "token" \
             && git push -f -q "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" backup-state
