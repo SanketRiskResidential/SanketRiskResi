@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SanketRisk Home — Residential Inspection &amp; Valuation Platform</title>
+<meta name="description" content="SanketRisk Home is a residential inspection platform with twelve report types, replacement-cost valuation and LiDAR survey reports with plans, for inspection firms, insurers and home professionals.">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&amp;family=IBM+Plex+Sans:wght@300;400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#2d3b2e;--navy-mid:#3d4f3f;--navy-light:#526b55;--deep:#1f2a20;
+  --gold:#c17a56;--gold-light:#d99b7a;--gold-pale:#f3e2d6;--gold-dim:rgba(193,122,86,.16);
+  --slate:#6b5d52;--slate-light:#a69686;--border:#ddd2c4;--bg:#f7f4ef;
+  --valuation:#b8893a;--lidar:#4f8f8a;--buyer:#6b8fb5;--live:#8fcf9b;
+}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--navy);overflow-x:hidden}
+h1,h2,h3,.serif{font-family:'Playfair Display',serif}
+
+/* SITE SWITCH RIBBON */
+.ribbon{position:fixed;top:0;left:0;right:0;z-index:300;height:34px;background:var(--deep);border-bottom:1px solid rgba(193,122,86,.25);display:flex;align-items:center;justify-content:center;gap:6px;padding:0 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;color:rgba(255,255,255,.55)}
+.ribbon a{color:var(--gold-light);text-decoration:none;font-weight:500}
+.ribbon a:hover{text-decoration:underline}
+.ribbon .cur{color:#fff;font-weight:500}
+.ribbon .sep{opacity:.35;margin:0 8px}
+
+/* NAV */
+nav{position:fixed;top:34px;left:0;right:0;z-index:200;padding:0 48px;height:68px;display:flex;align-items:center;justify-content:space-between;transition:background .3s,box-shadow .3s}
+nav.scrolled{background:rgba(31,42,32,.97);backdrop-filter:blur(16px);box-shadow:0 1px 0 rgba(193,122,86,.25)}
+.nav-logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.nav-logo-mark{width:36px;height:36px;background:var(--gold);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:19px}
+.nav-wordmark{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:#fff}
+.nav-wordmark span{color:var(--gold-light)}
+.nav-links{display:flex;align-items:center;gap:26px}
+.nav-links a{font-size:13px;font-weight:500;color:rgba(255,255,255,.68);text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--gold-light)}
+.btn-nav-cta{padding:8px 22px;background:var(--gold);color:#fff!important;border-radius:7px;font-weight:600!important;transition:all .2s}
+.btn-nav-cta:hover{background:var(--gold-light);transform:translateY(-1px)}
+
+/* HERO */
+.hero{min-height:100vh;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:150px 48px 100px;position:relative;overflow:hidden;text-align:center}
+.hero::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(243,226,214,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(243,226,214,.03) 1px,transparent 1px);background-size:72px 72px}
+.hero::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);width:900px;height:900px;background:radial-gradient(circle,rgba(193,122,86,.14) 0%,transparent 65%);pointer-events:none}
+.hero-content{position:relative;z-index:2;max-width:920px}
+.hero-kicker{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-light);margin-bottom:26px;display:inline-flex;align-items:center;gap:12px;animation:fadeUp .7s ease both}
+.hero-kicker::before,.hero-kicker::after{content:'';width:32px;height:1px;background:var(--gold-light);opacity:.5}
+.hero-wordmark{font-size:clamp(46px,8vw,92px);font-weight:700;color:#fff;line-height:1.02;letter-spacing:-.02em;margin-bottom:14px;animation:fadeUp .7s .1s ease both}
+.hero-wordmark span{color:var(--gold-light);font-style:italic}
+.hero-tagline{font-family:'Playfair Display',serif;font-size:clamp(18px,2.5vw,28px);font-style:italic;color:rgba(255,255,255,.6);margin-bottom:20px;animation:fadeUp .7s .2s ease both}
+.hero-sub{font-size:16px;line-height:1.75;color:rgba(255,255,255,.58);max-width:660px;margin:0 auto 42px;font-weight:300;animation:fadeUp .7s .25s ease both}
+.hero-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;animation:fadeUp .7s .3s ease both;margin-bottom:52px}
+.btn-primary{padding:14px 34px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary:hover{background:var(--gold-light);transform:translateY(-2px);box-shadow:0 8px 28px rgba(193,122,86,.3)}
+.btn-outline{padding:14px 34px;background:none;color:rgba(255,255,255,.8);border:1.5px solid rgba(255,255,255,.25);border-radius:8px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.btn-outline:hover{border-color:var(--gold-light);color:var(--gold-light)}
+.hero-products{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;animation:fadeUp .7s .35s ease both}
+.product-pill{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:100px;border:1px solid;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.06em}
+.pill-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* SHARED */
+.section-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.section-eyebrow::before{content:'';width:24px;height:1px;background:var(--gold)}
+.section-title{font-size:clamp(30px,4vw,48px);font-weight:600;color:var(--navy);line-height:1.12;margin-bottom:16px}
+.section-sub{font-size:16px;color:var(--slate);line-height:1.7;font-weight:300}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.status{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px}
+.status-live{background:rgba(143,207,155,.18);color:var(--live)}
+.status-soon{background:rgba(217,155,122,.18);color:var(--gold-light)}
+.light .status-live{background:#e8f4ea;color:#2f6b3c}
+.light .status-soon{background:var(--gold-pale);color:#9a5a39}
+
+/* REPORT TYPES */
+.types{background:var(--navy);padding:110px 48px;position:relative;overflow:hidden}
+.types::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(243,226,214,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(243,226,214,.025) 1px,transparent 1px);background-size:60px 60px}
+.types-header{text-align:center;max-width:720px;margin:0 auto 64px;position:relative;z-index:2}
+.types-header .section-title{color:#fff}
+.types-header .section-sub{color:rgba(255,255,255,.55)}
+.type-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;position:relative;z-index:2;max-width:1280px;margin:0 auto 40px}
+.type-card{border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);transition:transform .3s,box-shadow .3s;display:flex;flex-direction:column}
+.type-card:hover{transform:translateY(-6px);box-shadow:0 22px 56px rgba(0,0,0,.4)}
+.type-card .bar{height:4px;background:var(--gold)}
+.type-card.soon .bar{background:var(--buyer)}
+.type-body{padding:22px 20px;display:flex;flex-direction:column;flex:1}
+.type-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.type-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,.3);letter-spacing:.1em}
+.type-icon{font-size:28px;margin-bottom:10px}
+.type-name{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;color:#fff;margin-bottom:8px;line-height:1.25}
+.type-desc{font-size:12.5px;color:rgba(255,255,255,.5);line-height:1.62;font-weight:300;margin-bottom:16px;flex:1}
+.type-val{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.05em;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.4)}
+.type-val b{color:var(--gold-light);font-weight:500}
+.type-val.yes b{color:var(--live)}
+.types-note{text-align:center;font-family:'Playfair Display',serif;font-size:17px;font-style:italic;color:rgba(255,255,255,.35);position:relative;z-index:2}
+
+/* AUDIENCES */
+.audiences{background:#fff;padding:100px 48px}
+.audience-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px}
+.audience-card{border-radius:12px;overflow:hidden;border:1px solid var(--border);transition:transform .3s,box-shadow .3s}
+.audience-card:hover{transform:translateY(-6px);box-shadow:0 20px 48px rgba(45,59,46,.12)}
+.audience-card-top{padding:32px 28px 24px;background:var(--navy)}
+.audience-icon{width:52px;height:52px;background:var(--gold-dim);border:1px solid rgba(217,155,122,.35);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:18px}
+.audience-label{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:#fff;margin-bottom:10px}
+.audience-desc{font-size:13px;color:rgba(255,255,255,.55);line-height:1.65;font-weight:300}
+.audience-card-body{padding:24px 28px;background:#fff}
+.audience-benefit{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;font-size:13px;color:#3b3530;line-height:1.5}
+.audience-benefit:last-child{margin-bottom:0}
+.benefit-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:6px}
+
+/* FEATURES */
+.features{background:var(--bg);padding:100px 48px}
+.features-header{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:end;margin-bottom:56px}
+.pll{display:inline-flex;align-items:center;gap:8px;margin-bottom:14px}
+.pll-dot{width:10px;height:10px;border-radius:50%;background:var(--gold)}
+.pll-text{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;letter-spacing:.1em;color:var(--gold)}
+.feature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.feature-item{background:#fff;border:1px solid var(--border);border-radius:10px;padding:26px;transition:border-color .2s,box-shadow .2s;position:relative;overflow:hidden}
+.feature-item::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.feature-item:hover::before{transform:scaleX(1)}
+.feature-item:hover{border-color:rgba(193,122,86,.4);box-shadow:0 8px 32px rgba(45,59,46,.08)}
+.feature-icon{font-size:26px;margin-bottom:12px;display:block}
+.feature-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;color:var(--navy);margin-bottom:8px}
+.feature-desc{font-size:12.5px;color:var(--slate);line-height:1.65;font-weight:300}
+
+/* SERVICES */
+.services{background:#fff;padding:100px 48px}
+.cs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:56px}
+.cs-card{border-radius:14px;overflow:hidden;border:1px solid var(--border);transition:transform .3s,box-shadow .3s;display:flex;flex-direction:column}
+.cs-card:hover{transform:translateY(-5px);box-shadow:0 20px 50px rgba(45,59,46,.12)}
+.cs-card-top{padding:30px 28px;position:relative;overflow:hidden}
+.cs-card-top::before{content:'';position:absolute;top:-60px;right:-60px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.06)}
+.cs-badge{position:absolute;top:18px;right:18px}
+.cs-product-name{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;letter-spacing:.1em;color:#fff;margin-bottom:10px;padding-right:90px}
+.cs-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#fff;margin-bottom:10px;line-height:1.2}
+.cs-sub{font-size:13px;color:rgba(255,255,255,.7);line-height:1.6;font-weight:300}
+.cs-card-body{padding:24px 28px;background:#fff;flex:1}
+.cs-feature{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;font-size:13px;color:#3b3530;line-height:1.55}
+.cs-feature:last-child{margin-bottom:0}
+.cs-feat-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.cs-note{margin-top:16px;padding:12px 14px;background:var(--bg);border-radius:8px;border-left:3px solid var(--gold);font-size:12px;color:var(--slate);line-height:1.6}
+
+/* WORKFLOW */
+.workflow{background:var(--bg);padding:100px 48px}
+.workflow-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-top:64px;position:relative}
+.workflow-steps::before{content:'';position:absolute;top:28px;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.workflow-step{text-align:center;padding:0 16px}
+.workflow-num{width:56px;height:56px;background:var(--navy);border:2px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--gold-light);margin:0 auto 16px;position:relative;z-index:1}
+.workflow-title{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px}
+.workflow-desc{font-size:12px;color:var(--slate);line-height:1.55;font-weight:300}
+
+/* SHOWCASES */
+.showcases{background:var(--navy);padding:100px 48px}
+.showcase{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center;margin-bottom:100px}
+.showcase:last-child{margin-bottom:0}
+.showcase.reverse{direction:rtl}
+.showcase.reverse>*{direction:ltr}
+.showcase>*{min-width:0}
+.dash-sim,.report-sim{overflow:hidden}
+.showcase-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-light);margin-bottom:14px}
+.showcase-title{font-family:'Playfair Display',serif;font-size:clamp(24px,3vw,36px);font-weight:600;color:#fff;line-height:1.18;margin-bottom:16px}
+.showcase-desc{font-size:14px;color:rgba(255,255,255,.55);line-height:1.75;margin-bottom:22px;font-weight:300}
+.showcase-bullets{list-style:none;display:flex;flex-direction:column;gap:10px}
+.showcase-bullets li{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:rgba(255,255,255,.65);line-height:1.5}
+.showcase-bullets li::before{content:'\2192';color:var(--gold-light);flex-shrink:0;font-weight:600}
+.sim-screen{border-radius:10px;overflow:hidden;border:1px solid rgba(217,155,122,.2);box-shadow:0 24px 60px rgba(0,0,0,.4)}
+.sim-bar{background:#141c15;padding:8px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(217,155,122,.1)}
+.sim-dots{display:flex;gap:4px}
+.sim-dot{width:8px;height:8px;border-radius:50%}
+.sim-dot:nth-child(1){background:#ff5f57}.sim-dot:nth-child(2){background:#ffbd2e}.sim-dot:nth-child(3){background:#28ca41}
+.sim-url{flex:1;background:rgba(255,255,255,.05);border-radius:4px;padding:3px 8px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(255,255,255,.35);text-align:center}
+.dash-sim{background:#f1ede6;padding:14px}
+.dash-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.dash-stat{background:#fff;border:1px solid var(--border);border-radius:6px;padding:10px 12px;border-left:3px solid var(--gold)}
+.dash-stat-num{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--navy);line-height:1;margin-bottom:3px}
+.dash-stat-label{font-size:7px;color:var(--slate);text-transform:uppercase;letter-spacing:.08em}
+.dash-tbl-hdr{background:var(--navy);border-radius:6px 6px 0 0;padding:8px 12px;display:flex;align-items:center;justify-content:space-between}
+.dash-tbl-title{font-size:9px;font-weight:700;color:var(--gold-light);font-family:'IBM Plex Mono',monospace;letter-spacing:.08em}
+.dash-tbl-body{background:#fff;border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px}
+.dash-row{display:grid;grid-template-columns:minmax(0,74px) minmax(0,1fr) minmax(0,66px) minmax(0,48px) minmax(0,40px);gap:8px;padding:7px 12px;border-bottom:1px solid #f0ebe3;align-items:center;font-size:8px}
+.dash-row:last-child{border-bottom:none}
+.dash-row.hdr{background:var(--bg);font-size:7px;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.08em;font-family:'IBM Plex Mono',monospace}
+.dbadge{display:inline-block;padding:1px 6px;border-radius:8px;font-size:7px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.dbadge-draft{background:#edf0ec;color:#4a5a4c}.dbadge-sub{background:#fbeede;color:#b0602f}.dbadge-ok{background:#e6f3e8;color:#2f6b3c}.dbadge-rev{background:#efe9f5;color:#6b4f8f}
+.report-sim{background:#fff;padding:16px}
+.rpt-cover{background:var(--navy);border-radius:6px;padding:16px;margin-bottom:10px}
+.rpt-cover-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.rpt-logo{font-family:'Playfair Display',serif;font-size:12px;font-weight:600;color:#fff}
+.rpt-logo span{color:var(--gold-light)}
+.rpt-badge{background:var(--gold);color:#fff;font-size:7px;font-weight:700;padding:2px 7px;border-radius:3px;font-family:'IBM Plex Mono',monospace}
+.rpt-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;color:#fff;margin-bottom:4px}
+.rpt-sub{font-size:8px;color:rgba(255,255,255,.55);margin-bottom:12px}
+.rpt-scores{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.rpt-score{background:rgba(255,255,255,.06);border:1px solid rgba(217,155,122,.25);border-radius:4px;padding:6px;text-align:center}
+.rpt-score-num{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--gold-light);line-height:1.1}
+.rpt-score-lbl{font-size:6px;color:rgba(255,255,255,.45);margin-top:2px}
+.rpt-chips{display:flex;gap:5px;flex-wrap:wrap}
+.rpt-chip{background:#f1ede6;border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-size:7px;color:var(--slate);font-family:'IBM Plex Mono',monospace}
+.sample{font-size:9px;color:rgba(255,255,255,.3);font-family:'IBM Plex Mono',monospace;margin-top:10px;text-align:center}
+
+/* CONTACT */
+.contact{background:var(--deep);padding:100px 48px;position:relative;overflow:hidden}
+.contact::before{content:'';position:absolute;bottom:-200px;left:-100px;width:600px;height:600px;background:radial-gradient(circle,rgba(193,122,86,.12) 0%,transparent 65%)}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;position:relative;z-index:2}
+.contact-left .section-title{color:#fff}
+.contact-left .section-sub{color:rgba(255,255,255,.5)}
+.contact-detail{display:flex;align-items:flex-start;gap:14px;margin-top:28px}
+.contact-icon{width:40px;height:40px;background:var(--gold-dim);border:1px solid rgba(217,155,122,.3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.contact-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--gold-light);margin-bottom:4px;font-family:'IBM Plex Mono',monospace}
+.contact-val{font-size:14px;color:rgba(255,255,255,.7)}
+.crosslink{margin-top:36px;padding:22px;background:rgba(255,255,255,.04);border:1px solid rgba(217,155,122,.18);border-radius:10px}
+.crosslink-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--gold-light);font-family:'IBM Plex Mono',monospace;margin-bottom:8px}
+.crosslink p{font-size:13px;color:rgba(255,255,255,.55);line-height:1.6;margin-bottom:12px}
+.crosslink a{font-size:13px;font-weight:600;color:var(--gold-light);text-decoration:none}
+.crosslink a:hover{text-decoration:underline}
+.contact-form{background:rgba(255,255,255,.05);border:1px solid rgba(217,155,122,.2);border-radius:12px;padding:36px}
+.form-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:#fff;margin-bottom:4px}
+.form-sub{font-size:13px;color:rgba(255,255,255,.45);margin-bottom:24px;font-weight:300}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.form-field{display:flex;flex-direction:column;gap:6px}
+.form-field.full{grid-column:1/-1}
+.form-field label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.45);font-family:'IBM Plex Mono',monospace}
+.form-field input,.form-field select,.form-field textarea{padding:11px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;font-family:inherit;font-size:14px;color:#fff;outline:none;transition:border-color .2s;width:100%}
+.form-field input::placeholder,.form-field textarea::placeholder{color:rgba(255,255,255,.22)}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--gold-light);background:rgba(255,255,255,.09)}
+.form-field select option{background:var(--navy-mid)}
+.form-field textarea{resize:vertical;min-height:100px}
+.hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;overflow:hidden}
+.btn-submit{width:100%;padding:14px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;margin-top:4px}
+.btn-submit:hover{background:var(--gold-light);transform:translateY(-1px)}
+.btn-submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.form-success{display:none;text-align:center;padding:32px}
+.form-success-icon{font-size:48px;margin-bottom:14px}
+.form-success-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:600;color:#fff;margin-bottom:8px}
+.form-success-sub{font-size:14px;color:rgba(255,255,255,.5)}
+
+/* FOOTER */
+footer{background:#141c15;padding:40px 48px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(193,122,86,.18);flex-wrap:wrap;gap:16px}
+.footer-logo{font-family:'Playfair Display',serif;font-size:17px;font-weight:600;color:rgba(255,255,255,.6)}
+.footer-logo span{color:var(--gold-light)}
+.footer-copy{font-size:11px;color:rgba(255,255,255,.28);font-family:'IBM Plex Mono',monospace;margin-top:4px}
+.footer-links{display:flex;gap:24px;flex-wrap:wrap}
+.footer-links a{font-size:12px;color:rgba(255,255,255,.4);text-decoration:none;transition:color .2s}
+.footer-links a:hover{color:var(--gold-light)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:1200px){.type-grid{grid-template-columns:repeat(3,1fr)}.feature-grid{grid-template-columns:1fr 1fr}.cs-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:1024px){nav{padding:0 20px}.nav-links a:not(.btn-nav-cta){display:none}.hero{padding:140px 24px 80px}.types,.audiences,.features,.services,.workflow,.showcases,.contact{padding:72px 24px}.audience-grid{grid-template-columns:1fr;max-width:520px}.features-header{grid-template-columns:1fr;gap:20px}.cs-grid{grid-template-columns:1fr}.showcase,.showcase.reverse{grid-template-columns:1fr;direction:ltr;gap:40px}.workflow-steps{grid-template-columns:1fr 1fr;row-gap:36px}.workflow-steps::before{display:none}.contact-grid{grid-template-columns:1fr;gap:48px}footer{flex-direction:column;text-align:center;padding:36px 24px}}
+@media(max-width:700px){.type-grid{grid-template-columns:1fr 1fr}.ribbon{font-size:10px}.ribbon .long{display:none}}
+@media(max-width:560px){.type-grid{grid-template-columns:1fr}.feature-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.workflow-steps{grid-template-columns:1fr}.dash-stats-row{grid-template-columns:1fr 1fr}.contact-form{padding:24px}}
+
+</style>
+</head>
+<body>
+
+<div class="ribbon"><span class="cur">&#127968; SanketRisk Home</span><span class="sep">|</span><a href="https://sanketrisk.netlify.app/marketing">Commercial property? <span class="long">SanketRisk ONE</span> &rarr;</a><span class="sep landing-only" style="display:none">|</span><a class="landing-link" href="#" style="display:none">Sanket Risk home &rarr;</a></div>
+
+<nav id="navbar">
+  <a href="#" class="nav-logo"><div class="nav-logo-mark">&#127968;</div><div class="nav-wordmark">SanketRisk <span>Home</span></div></a>
+  <div class="nav-links">
+    <a href="#types">Report Types</a>
+    <a href="#features">Platform</a>
+    <a href="#services">Valuation &amp; LiDAR</a>
+    <a href="#workflow">Workflow</a>
+    <a href="#contact">Contact</a>
+    <a href="/login.html" class="btn-nav-cta">Sign In &rarr;</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-kicker">Sanket Risk Intelligence &mdash; Residential Suite</div>
+    <h1 class="hero-wordmark">Sanket Risk <span>Home</span></h1>
+    <div class="hero-tagline">Every home. Every report. One standard.</div>
+    <p class="hero-sub">One platform for residential inspections, valuation and survey reports &mdash; built for inspection firms, insurers and home professionals who need consistent, defensible reports at every level of detail, from a quick exterior look to a full room-by-room record.</p>
+    <div class="hero-ctas">
+      <a href="#contact" class="btn-primary">Request a Demo &rarr;</a>
+      <a href="/request.html" class="btn-outline">Request an Inspection</a>
+      <a href="#types" class="btn-outline">Explore Report Types</a>
+    </div>
+    <div class="hero-products">
+      <div class="product-pill" style="background:rgba(193,122,86,.14);border-color:rgba(217,155,122,.4);color:var(--gold-light)"><div class="pill-dot" style="background:var(--gold)"></div>12 Report Types</div>
+      <div class="product-pill" style="background:rgba(184,137,58,.14);border-color:rgba(184,137,58,.45);color:#e0b872"><div class="pill-dot" style="background:var(--valuation)"></div>SanketHome Valuation</div>
+      <div class="product-pill" style="background:rgba(79,143,138,.14);border-color:rgba(79,143,138,.45);color:#8fd0ca"><div class="pill-dot" style="background:var(--lidar)"></div>LiDAR Survey &amp; Plans</div>
+      <div class="product-pill" style="background:rgba(107,143,181,.14);border-color:rgba(107,143,181,.45);color:#a9c5e2"><div class="pill-dot" style="background:var(--buyer)"></div>Home Buyers Inspection</div>
+    </div>
+  </div>
+</section>
+
+<section class="types" id="types">
+  <div class="types-header reveal">
+    <div class="section-eyebrow" style="justify-content:center">Report Types</div>
+    <h2 class="section-title">Twelve Reports.<br>One Platform.</h2>
+    <p class="section-sub">Choose the depth the job needs. Every report type shares the same workflow, the same quality review and the same professional output.</p>
+  </div>
+  <div class="type-grid reveal">
+<div class="type-card"><div class="bar"></div><div class="type-body"><div class="type-top"><span class="type-num">01</span><span class="status status-live">&#9679; Live</span></div><div class="type-icon">🏡</div><div class="type-name">Residential Lite</div><p class="type-desc">A fast, structured inspection of the essentials: property basics, roof, exterior, site hazards and an overall assessment.</p><div class="type-val yes">Valuation: <b>&#10003; Available</b></div></div></div>
+<div class="type-card"><div class="bar"></div><div class="type-body"><div class="type-top"><span class="type-num">02</span><span class="status status-live">&#9679; Live</span></div><div class="type-icon">🏠</div><div class="type-name">Full Residential</div><p class="type-desc">The complete inspection of a conventional home, inside and out, with full building, systems and protection detail.</p><div class="type-val yes">Valuation: <b>&#10003; Available</b></div></div></div>
+<div class="type-card"><div class="bar"></div><div class="type-body"><div class="type-top"><span class="type-num">03</span><span class="status status-live">&#9679; Live</span></div><div class="type-icon">🏘️</div><div class="type-name">Residential Manufactured</div><p class="type-desc">Built for manufactured homes, with fields that reflect how they are constructed, set and maintained.</p><div class="type-val">Valuation: <b>Coming soon</b></div></div></div>
+<div class="type-card"><div class="bar"></div><div class="type-body"><div class="type-top"><span class="type-num">04</span><span class="status status-live">&#9679; Live</span></div><div class="type-icon">🚐</div><div class="type-name">Full Residential Manufactured</div><p class="type-desc">The complete manufactured-home inspection, inside and out, in the same structured format.</p><div class="type-val">Valuation: <b>Coming soon</b></div></div></div>
+<div class="type-card"><div class="bar"></div><div class="type-body"><div class="type-top"><span class="type-num">05</span><span class="status status-live">&#9679; Live</span></div><div class="type-icon">🧱</div><div class="type-name">Exterior</div><p class="type-desc">An exterior-only inspection of the roof, walls, structure and site, ideal when interior access is not needed.</p><div class="type-val">Valuation: <b>Coming soon</b></div></div></div>
+<div class="type-card"><div class="bar"></div><div class="type-body"><div class="type-top"><span class="type-num">06</span><span class="status status-live">&#9679; Live</span></div><div class="type-icon">🛖</div><div class="type-name">Exterior Manufactured</div><p class="type-desc">An exterior-only inspection designed specifically for manufactured homes.</p><div class="type-val">Valuation: <b>Coming soon</b></div></div></div>
+<div class="type-card"><div class="bar"></div><div class="type-body"><div class="type-top"><span class="type-num">07</span><span class="status status-live">&#9679; Live</span></div><div class="type-icon">🔑</div><div class="type-name">Exterior / Interior</div><p class="type-desc">Exterior and interior condition captured together in one streamlined report.</p><div class="type-val">Valuation: <b>Coming soon</b></div></div></div>
+<div class="type-card"><div class="bar"></div><div class="type-body"><div class="type-top"><span class="type-num">08</span><span class="status status-live">&#9679; Live</span></div><div class="type-icon">🔨</div><div class="type-name">A&amp;A</div><p class="type-desc">Additions and alterations: what was renovated or added, when, and to what standard, so records stay current.</p><div class="type-val">Valuation: <b>Coming soon</b></div></div></div>
+<div class="type-card"><div class="bar"></div><div class="type-body"><div class="type-top"><span class="type-num">09</span><span class="status status-live">&#9679; Live</span></div><div class="type-icon">🛠️</div><div class="type-name">Full A&amp;A</div><p class="type-desc">A detailed room-by-room record of renovations: kitchens, baths, finishes, systems and upgrades.</p><div class="type-val">Valuation: <b>Coming soon</b></div></div></div>
+<div class="type-card"><div class="bar"></div><div class="type-body"><div class="type-top"><span class="type-num">10</span><span class="status status-live">&#9679; Live</span></div><div class="type-icon">🏚️</div><div class="type-name">Additional Structures</div><p class="type-desc">Detached garages, sheds, barns and other outbuildings, each recorded with its own construction, size and condition.</p><div class="type-val">Valuation: <b>Coming soon</b></div></div></div>
+<div class="type-card"><div class="bar"></div><div class="type-body"><div class="type-top"><span class="type-num">11</span><span class="status status-live">&#9679; Live</span></div><div class="type-icon">📋</div><div class="type-name">Supplementary Form</div><p class="type-desc">Occupancy, utilities, security, fire protection and liability details, added to any inspection.</p><div class="type-val">Valuation: <b>Coming soon</b></div></div></div>
+<div class="type-card soon"><div class="bar"></div><div class="type-body"><div class="type-top"><span class="type-num">12</span><span class="status status-soon">&#9678; Coming Soon</span></div><div class="type-icon">🏷️</div><div class="type-name">Home Buyers Inspection</div><p class="type-desc">A pre-purchase report written for the buyer: condition, defects and maintenance priorities in plain language.</p><div class="type-val">Valuation: <b>planned</b></div></div></div>
+  </div>
+  <p class="types-note reveal">Eleven report types are live today. The Home Buyers Inspection is coming soon.</p>
+</section>
+
+<section class="audiences" id="audiences">
+  <div class="section-eyebrow">Built For</div>
+  <h2 class="section-title">Who Uses<br>SanketRisk Home</h2>
+  <p class="section-sub" style="max-width:580px">From the inspector on the doorstep to the underwriter at the desk and the homeowner waiting for the report.</p>
+  <div class="audience-grid reveal">
+    <div class="audience-card"><div class="audience-card-top"><div class="audience-icon">&#128269;</div><div class="audience-label">Inspection Firms &amp; Inspectors</div><div class="audience-desc">Independent inspectors and multi-inspector firms who need a professional workflow without enterprise complexity.</div></div>
+      <div class="audience-card-body">
+        <div class="audience-benefit"><div class="benefit-dot"></div>Twelve report types, from exterior-only to full inspections</div>
+        <div class="audience-benefit"><div class="benefit-dot"></div>Assignment, accept or decline, and a full activity log</div>
+        <div class="audience-benefit"><div class="benefit-dot"></div>Automatic recommendations written from your field entries</div>
+        <div class="audience-benefit"><div class="benefit-dot"></div>Works from a tablet, in the field</div>
+      </div></div>
+    <div class="audience-card"><div class="audience-card-top"><div class="audience-icon">&#128202;</div><div class="audience-label">Insurers, MGAs &amp; Underwriters</div><div class="audience-desc">Carriers who need structured, consistent property data and clear condition and valuation information.</div></div>
+      <div class="audience-card-body">
+        <div class="audience-benefit"><div class="benefit-dot"></div>The same structured fields on every report, every time</div>
+        <div class="audience-benefit"><div class="benefit-dot"></div>QA-approved reports with a full audit trail</div>
+        <div class="audience-benefit"><div class="benefit-dot"></div>Replacement-cost valuation from the inspection data</div>
+        <div class="audience-benefit"><div class="benefit-dot"></div>Additions, alterations and outbuildings recorded in detail</div>
+      </div></div>
+    <div class="audience-card"><div class="audience-card-top"><div class="audience-icon">&#128273;</div><div class="audience-label">Brokers, Agents &amp; Homeowners</div><div class="audience-desc">Anyone who orders an inspection and wants a clear report back without chasing it.</div></div>
+      <div class="audience-card-body">
+        <div class="audience-benefit"><div class="benefit-dot"></div>Order any report type through the request portal</div>
+        <div class="audience-benefit"><div class="benefit-dot"></div>Track the status of each request</div>
+        <div class="audience-benefit"><div class="benefit-dot"></div>Download the report once it has been approved and released</div>
+        <div class="audience-benefit"><div class="benefit-dot"></div>Home Buyers Inspection coming soon</div>
+      </div></div>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="features-header">
+    <div><div class="pll"><div class="pll-dot"></div><span class="pll-text">SanketRisk Home &mdash; Core Platform</span></div>
+      <h2 class="section-title">Everything an Inspection Needs, End to End</h2></div>
+    <p class="section-sub">From the first request to the released report, every step happens in one connected platform.</p>
+  </div>
+  <div class="feature-grid reveal">
+<div class="feature-item"><span class="feature-icon">🧩</span><div class="feature-title">One Engine, Every Report Type</div><p class="feature-desc">All twelve report types run on the same configurable inspection engine, so every form, saved record and printed report stays consistent.</p></div>
+<div class="feature-item"><span class="feature-icon">📩</span><div class="feature-title">Inspection Request Portal</div><p class="feature-desc">A public request page with access codes lets clients, brokers and agents order any report type, and requests land straight in your dashboard.</p></div>
+<div class="feature-item"><span class="feature-icon">👥</span><div class="feature-title">Role-Based Workflow</div><p class="feature-desc">Administrators, inspectors, reviewers and requestors each see exactly what they need and nothing more.</p></div>
+<div class="feature-item"><span class="feature-icon">📌</span><div class="feature-title">Assignment &amp; Activity Log</div><p class="feature-desc">Assign jobs, let inspectors accept or decline, and keep a time-stamped activity history on every file.</p></div>
+<div class="feature-item"><span class="feature-icon">🧠</span><div class="feature-title">Two-Stage AI Pre-Review</div><p class="feature-desc">An AI pass checks each report for gaps and inconsistencies before the inspector submits, and again before supervisor sign-off.</p></div>
+<div class="feature-item"><span class="feature-icon">✅</span><div class="feature-title">QA Review &amp; Approval</div><p class="feature-desc">Submit, review, approve or return with structured feedback. Nothing is released until it is approved.</p></div>
+<div class="feature-item"><span class="feature-icon">💡</span><div class="feature-title">Recommendation Engine</div><p class="feature-desc">Field entries automatically generate clear, prioritised recommendations, with no manual drafting.</p></div>
+<div class="feature-item"><span class="feature-icon">📷</span><div class="feature-title">Photo Documentation</div><p class="feature-desc">Capture and attach photos to the inspection record, so evidence and findings stay together.</p></div>
+<div class="feature-item"><span class="feature-icon">📄</span><div class="feature-title">Print-Ready Reports</div><p class="feature-desc">Consistent, professional reports generated from one set of field data, ready to print or save as PDF.</p></div>
+<div class="feature-item"><span class="feature-icon">🏦</span><div class="feature-title">Replacement-Cost Valuation</div><p class="feature-desc">Request a replacement-cost estimate from the inspection data already entered, with no re-keying.</p></div>
+<div class="feature-item"><span class="feature-icon">🔐</span><div class="feature-title">Requestor Report Access</div><p class="feature-desc">Requestors sign in to track their orders and download reports once they have been released to them.</p></div>
+<div class="feature-item"><span class="feature-icon">🛡️</span><div class="feature-title">Secure Cloud Architecture</div><p class="feature-desc">Row-level security and role-based access, with encrypted nightly backups kept for 30 days and restore-tested.</p></div>
+  </div>
+</section>
+
+<section class="services light" id="services">
+  <div class="section-eyebrow">Valuation, Survey &amp; Roadmap</div>
+  <h2 class="section-title">Available Now &amp;<br>Coming to SanketRisk Home</h2>
+  <p class="section-sub" style="max-width:600px">Valuation, LiDAR survey and the Home Buyers Inspection extend each report beyond the form, and they connect directly to the inspection record.</p>
+  <div class="cs-grid reveal">
+    <div class="cs-card">
+      <div class="cs-card-top" style="background:linear-gradient(135deg,#7a5a1f,#b8893a)">
+        <span class="cs-badge status status-live" style="background:rgba(255,255,255,.18);color:#fff">&#9679; Available</span>
+        <div class="cs-product-name">SanketHome Valuation</div>
+        <div class="cs-title">Replacement-Cost Valuation from the Inspection</div>
+        <p class="cs-sub">Request a replacement-cost estimate directly from the data you have already entered, so there is no re-keying and no separate order.</p>
+      </div>
+      <div class="cs-card-body">
+        <div class="cs-feature"><div class="cs-feat-icon">&#9889;</div><div>Available today on <b>Residential Lite</b> and <b>Full Residential</b> inspections</div></div>
+        <div class="cs-feature"><div class="cs-feat-icon">&#128257;</div><div>Rolling out across all eleven live report types, and the Home Buyers Inspection when it launches</div></div>
+        <div class="cs-feature"><div class="cs-feat-icon">&#128203;</div><div>Inspection fields such as year built, size, construction, roof and quality feed the estimate directly</div></div>
+        <div class="cs-feature"><div class="cs-feat-icon">&#128196;</div><div>Valuation sits alongside the inspection report as one complete package</div></div>
+        <div class="cs-note">Valuation is generated from the property details captured in the inspection. Availability by report type is being extended progressively.</div>
+      </div>
+    </div>
+    <div class="cs-card">
+      <div class="cs-card-top" style="background:linear-gradient(135deg,#255553,#4f8f8a)">
+        <span class="cs-badge status status-soon" style="background:rgba(255,255,255,.18);color:#fff">&#9678; Coming Soon</span>
+        <div class="cs-product-name">Sanket LIDAR ONE</div>
+        <div class="cs-title">LiDAR Survey Reports with Plans</div>
+        <p class="cs-sub">LiDAR spatial surveys that turn a walk-through into measured floor plans, delivered with the report.</p>
+      </div>
+      <div class="cs-card-body">
+        <div class="cs-feature"><div class="cs-feat-icon">&#128208;</div><div>Accurate floor plans and sections produced from LiDAR scan data</div></div>
+        <div class="cs-feature"><div class="cs-feat-icon">&#128207;</div><div>Verified living areas for valuation and for confirming what the report describes</div></div>
+        <div class="cs-feature"><div class="cs-feat-icon">&#128295;</div><div>Ideal for additions and alterations, where measured plans show exactly what changed</div></div>
+        <div class="cs-feature"><div class="cs-feat-icon">&#128279;</div><div>Plans attach to the inspection record and the report, for any report type</div></div>
+        <div class="cs-feature"><div class="cs-feat-icon">&#9729;&#65039;</div><div>Survey data stored securely in the SanketRisk Home cloud platform</div></div>
+        <div class="cs-note">The same LiDAR survey capability is part of the Sanket suite for commercial properties.</div>
+      </div>
+    </div>
+    <div class="cs-card">
+      <div class="cs-card-top" style="background:linear-gradient(135deg,#34506b,#6b8fb5)">
+        <span class="cs-badge status status-soon" style="background:rgba(255,255,255,.18);color:#fff">&#9678; Coming Soon</span>
+        <div class="cs-product-name">Home Buyers Inspection</div>
+        <div class="cs-title">A Pre-Purchase Report Written for the Buyer</div>
+        <p class="cs-sub">The twelfth report type: a clear, plain-language record of a home&rsquo;s condition before the buyer commits.</p>
+      </div>
+      <div class="cs-card-body">
+        <div class="cs-feature"><div class="cs-feat-icon">&#127968;</div><div>Condition of the structure, roof, exterior and systems, in plain language</div></div>
+        <div class="cs-feature"><div class="cs-feat-icon">&#9888;&#65039;</div><div>Defects and maintenance priorities highlighted and ranked</div></div>
+        <div class="cs-feature"><div class="cs-feat-icon">&#128247;</div><div>Photographs linked to each finding</div></div>
+        <div class="cs-feature"><div class="cs-feat-icon">&#128260;</div><div>Same workflow, quality review and requestor access as every other report type</div></div>
+        <div class="cs-feature"><div class="cs-feat-icon">&#127970;</div><div>Combine with LiDAR plans and valuation as a complete buyer package</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="workflow" id="workflow">
+  <div style="text-align:center;max-width:620px;margin:0 auto">
+    <div class="section-eyebrow" style="justify-content:center">End to End</div>
+    <h2 class="section-title">From Request<br>to Released Report</h2>
+    <p class="section-sub" style="margin:0 auto">A complete inspection lifecycle in one place: no spreadsheets, no email chains, no disconnected tools.</p>
+  </div>
+  <div class="workflow-steps reveal">
+    <div class="workflow-step"><div class="workflow-num">1</div><div class="workflow-title">Request Received</div><p class="workflow-desc">A client or broker orders any report type through the request portal using an access code.</p></div>
+    <div class="workflow-step"><div class="workflow-num">2</div><div class="workflow-title">Assigned &amp; Accepted</div><p class="workflow-desc">An administrator assigns an inspector and a reviewer, and the inspector accepts the job.</p></div>
+    <div class="workflow-step"><div class="workflow-num">3</div><div class="workflow-title">Field Inspection</div><p class="workflow-desc">The inspector completes the structured form on site, with photos and automatic recommendations.</p></div>
+    <div class="workflow-step"><div class="workflow-num">4</div><div class="workflow-title">AI Pre-Review &amp; QA</div><p class="workflow-desc">AI flags gaps before submission, then a reviewer approves or returns the report with feedback.</p></div>
+    <div class="workflow-step"><div class="workflow-num">5</div><div class="workflow-title">Released</div><p class="workflow-desc">The approved report is released and the requestor downloads it, with the full record archived.</p></div>
+  </div>
+</section>
+
+<section class="showcases">
+  <div class="showcase reveal">
+    <div>
+      <div class="showcase-eyebrow">Inspector Dashboard</div>
+      <h3 class="showcase-title">Complete Visibility Into Every Active Inspection</h3>
+      <p class="showcase-desc">Role-aware dashboards show each person exactly what they need: inspectors see their assigned jobs, reviewers see what is waiting for them, and administrators see everything.</p>
+      <ul class="showcase-bullets">
+        <li>Real-time status: Draft, Submitted, In Review, Approved</li>
+        <li>Assign, accept or decline, and review in one place</li>
+        <li>Every report type opens the right form automatically</li>
+        <li>Inspection requests managed and assigned from the dashboard</li>
+      </ul>
+    </div>
+    <div>
+      <div class="sim-screen">
+        <div class="sim-bar"><div class="sim-dots"><div class="sim-dot"></div><div class="sim-dot"></div><div class="sim-dot"></div></div><div class="sim-url">Dashboard &mdash; SanketRisk Home</div></div>
+        <div class="dash-sim">
+          <div class="dash-stats-row">
+            <div class="dash-stat"><div class="dash-stat-num">12</div><div class="dash-stat-label">Assigned</div></div>
+            <div class="dash-stat" style="border-left-color:#c8863a"><div class="dash-stat-num">6</div><div class="dash-stat-label">In Progress</div></div>
+            <div class="dash-stat" style="border-left-color:#2f6b3c"><div class="dash-stat-num">5</div><div class="dash-stat-label">Approved</div></div>
+            <div class="dash-stat" style="border-left-color:#b0402f"><div class="dash-stat-num">1</div><div class="dash-stat-label">Attention</div></div>
+          </div>
+          <div class="dash-tbl-hdr"><div class="dash-tbl-title">Open Inspections</div><div style="font-size:8px;color:var(--slate-light)">12 records</div></div>
+          <div class="dash-tbl-body">
+            <div class="dash-row hdr"><span>Type</span><span>Property</span><span>Status</span><span>Inspector</span><span></span></div>
+            <div class="dash-row"><span style="font-size:7px;color:var(--slate)">Full Residential</span><div><div style="font-weight:600">14 Maple Court</div><div style="font-size:7px;color:var(--slate)">Burlington, ON</div></div><span><span class="dbadge dbadge-ok">Approved</span></span><span style="color:var(--slate)">A. Khan</span><span style="color:var(--gold);font-size:9px;font-weight:600">Open &rarr;</span></div>
+            <div class="dash-row"><span style="font-size:7px;color:var(--slate)">A&amp;A</span><div><div style="font-weight:600">230 Lakeview Drive</div><div style="font-size:7px;color:var(--slate)">Kelowna, BC</div></div><span><span class="dbadge dbadge-rev">In Review</span></span><span style="color:var(--slate)">M. Chen</span><span style="color:var(--gold);font-size:9px;font-weight:600">Open &rarr;</span></div>
+            <div class="dash-row"><span style="font-size:7px;color:var(--slate)">Exterior</span><div><div style="font-weight:600">8 Birch Lane</div><div style="font-size:7px;color:var(--slate)">Calgary, AB</div></div><span><span class="dbadge dbadge-sub">Submitted</span></span><span style="color:var(--slate)">A. Khan</span><span style="color:var(--gold);font-size:9px;font-weight:600">Open &rarr;</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="sample">Sample data shown</div>
+    </div>
+  </div>
+  <div class="showcase reverse reveal">
+    <div>
+      <div class="showcase-eyebrow">Report Output</div>
+      <h3 class="showcase-title">One Set of Field Data. One Professional Report.</h3>
+      <p class="showcase-desc">Enter the data once. The report is generated from the same record every time, whichever report type you choose, with the same clear layout and the same quality review.</p>
+      <ul class="showcase-bullets">
+        <li>Consistent structure across all report types</li>
+        <li>Recommendations generated from the inspection findings</li>
+        <li>Additions, alterations and outbuildings laid out card by card</li>
+        <li>Print-ready, or save as PDF</li>
+      </ul>
+    </div>
+    <div>
+      <div class="sim-screen">
+        <div class="sim-bar"><div class="sim-dots"><div class="sim-dot"></div><div class="sim-dot"></div><div class="sim-dot"></div></div><div class="sim-url">SanketRisk Home &mdash; Inspection Report</div></div>
+        <div class="report-sim">
+          <div class="rpt-cover">
+            <div class="rpt-cover-top"><div class="rpt-logo">Sanket<span>Risk</span> Home</div><div class="rpt-badge">FULL RESIDENTIAL</div></div>
+            <div class="rpt-title">14 Maple Court</div>
+            <div class="rpt-sub">Burlington, ON &middot; Single-family dwelling &middot; Sample report</div>
+            <div class="rpt-scores">
+              <div class="rpt-score"><div class="rpt-score-num">Roof</div><div class="rpt-score-lbl">Good</div></div>
+              <div class="rpt-score"><div class="rpt-score-num">Exterior</div><div class="rpt-score-lbl">Good</div></div>
+              <div class="rpt-score"><div class="rpt-score-num">Systems</div><div class="rpt-score-lbl">Fair</div></div>
+              <div class="rpt-score"><div class="rpt-score-num">Overall</div><div class="rpt-score-lbl">Good</div></div>
+            </div>
+          </div>
+          <div style="font-size:7px;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;font-family:'IBM Plex Mono',monospace">Report Sections</div>
+          <div class="rpt-chips"><div class="rpt-chip">Property Basics</div><div class="rpt-chip">Roof</div><div class="rpt-chip">Exterior</div><div class="rpt-chip">Interior</div><div class="rpt-chip">Site Hazards</div><div class="rpt-chip">Recommendations</div><div class="rpt-chip">Valuation</div><div class="rpt-chip">Photos</div></div>
+        </div>
+      </div>
+      <div class="sample">Sample report shown</div>
+    </div>
+  </div>
+</section>
+
+<section class="contact" id="contact">
+  <div class="contact-grid">
+    <div class="contact-left">
+      <div class="section-eyebrow">Get In Touch</div>
+      <h2 class="section-title">Request a Demo or<br>Licensing Discussion</h2>
+      <p class="section-sub">Whether you run an inspection firm, place residential business with a carrier, or work as an independent inspector, we would like to hear from you.</p>
+      <div class="contact-detail"><div class="contact-icon">&#127970;</div><div><div class="contact-lbl">Organization</div><div class="contact-val">Sanket Risk Consultants</div></div></div>
+      <div class="contact-detail"><div class="contact-icon">&#128205;</div><div><div class="contact-lbl">Service Area</div><div class="contact-val">Canada &amp; United States</div></div></div>
+      <div class="contact-detail"><div class="contact-icon">&#128233;</div><div><div class="contact-lbl">Order an Inspection</div><div class="contact-val"><a href="/request.html" style="color:var(--gold-light)">Open the request portal &rarr;</a></div></div></div>
+      <div class="crosslink">
+        <div class="crosslink-lbl">Commercial Property?</div>
+        <p>Sanket Risk also offers a commercial property risk intelligence suite for loss control consultants, inspection firms and underwriters.</p>
+        <a href="https://sanketrisk.netlify.app/marketing">Explore SanketRisk ONE &rarr;</a>
+      </div>
+    </div>
+    <div class="contact-form">
+      <div class="form-title">Request a Demo</div>
+      <p class="form-sub">Tell us about your organization and we&rsquo;ll be in touch within one business day.</p>
+      <div id="form-fields">
+        <div class="form-grid">
+          <div class="form-field"><label for="cf-first">First Name</label><input type="text" id="cf-first" maxlength="80" placeholder="Jane" autocomplete="given-name"></div>
+          <div class="form-field"><label for="cf-last">Last Name</label><input type="text" id="cf-last" maxlength="80" placeholder="Smith" autocomplete="family-name"></div>
+          <div class="form-field"><label for="cf-email">Email Address</label><input type="email" id="cf-email" maxlength="160" placeholder="jane@organization.com" autocomplete="email"></div>
+          <div class="form-field"><label for="cf-org">Organization</label><input type="text" id="cf-org" maxlength="160" placeholder="Firm / Company Name" autocomplete="organization"></div>
+          <div class="form-field full"><label for="cf-role">I am a&hellip;</label>
+            <select id="cf-role"><option value="">&mdash; Please select &mdash;</option><option>Independent Inspector</option><option>Inspection Firm &mdash; Multi-inspector</option><option>Insurance Carrier / MGA</option><option>Underwriter</option><option>Broker / Agent</option><option>Homeowner / Home Buyer</option><option>Other</option></select></div>
+          <div class="form-field full"><label for="cf-product">What interests you?</label>
+            <select id="cf-product"><option value="">&mdash; Select interest &mdash;</option><option>SanketRisk Home &mdash; Inspection Platform</option><option>SanketHome Valuation</option><option>LiDAR Survey Reports with Plans</option><option>Home Buyers Inspection</option><option>Everything &mdash; Full Suite</option></select></div>
+          <div class="form-field full"><label for="cf-message">Message</label><textarea id="cf-message" maxlength="2000" placeholder="Tell us about your inspection volume, current tools, and what you&rsquo;re looking for&hellip;"></textarea></div>
+          <div class="hp" aria-hidden="true"><label for="cf-website">Website</label><input type="text" id="cf-website" tabindex="-1" autocomplete="off"></div>
+        </div>
+        <button class="btn-submit" id="btn-submit" onclick="submitForm()">Send Message &rarr;</button>
+        <div id="form-error" style="margin-top:10px;font-size:12px;color:#f0a090;display:none"></div>
+      </div>
+      <div class="form-success" id="form-success">
+        <div class="form-success-icon">&#9989;</div>
+        <div class="form-success-title">Message Received</div>
+        <p class="form-success-sub">Thank you for your interest in SanketRisk Home. We&rsquo;ll review your enquiry and be in touch within one business day.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>
+    <div class="footer-logo">SanketRisk <span>Home</span></div>
+    <div class="footer-copy">&copy; 2026 Sanket Risk Consultants. All rights reserved.</div>
+    <div class="footer-copy" style="color:rgba(217,155,122,.5)">Part of the Sanket Risk Intelligence suite</div>
+  </div>
+  <div class="footer-links">
+    <a href="/login.html">Platform Sign In</a>
+    <a href="/request.html">Request an Inspection</a>
+    <a href="#types">Report Types</a>
+    <a href="#contact">Contact</a>
+    <a href="https://sanketrisk.netlify.app/marketing">Commercial: SanketRisk ONE</a>
+  </div>
+</footer>
+
+<script>
+  // Set this to the address of the combined landing page once it is live (leave empty to hide the link).
+  var LANDING_URL = '';
+  if (LANDING_URL) {
+    var ll = document.querySelector('.landing-link'); ll.href = LANDING_URL; ll.style.display = '';
+    document.querySelector('.landing-only').style.display = '';
+  }
+  var navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', function(){ navbar.classList.toggle('scrolled', window.scrollY > 40); }, {passive:true});
+  var revObs = new IntersectionObserver(function(entries){ entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('visible'); revObs.unobserve(e.target); } }); }, {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(function(el){ revObs.observe(el); });
+  document.querySelectorAll('a[href^="#"]').forEach(function(a){ a.addEventListener('click', function(e){ var h=a.getAttribute('href'); if(h.length>1){ var t=document.querySelector(h); if(t){ e.preventDefault(); t.scrollIntoView({behavior:'smooth'}); } } }); });
+
+  var SB_URL = 'https://lkihphmtyusqmnhbfswq.supabase.co';
+  var SB_KEY = 'sb_publishable_X7JifOrQKvkCwGD7DQpPZg_-6jB5j3Z';
+  var pageLoaded = Date.now();
+
+  function submitForm() {
+    var v = function(id){ return document.getElementById(id).value.trim(); };
+    var first=v('cf-first'), last=v('cf-last'), email=v('cf-email'), org=v('cf-org'), role=v('cf-role'), product=v('cf-product'), message=v('cf-message');
+    var errBox=document.getElementById('form-error'), btn=document.getElementById('btn-submit');
+    errBox.style.display='none';
+    if(!first||!last||!email||!role){ errBox.textContent='Please fill in Name, Email, and Role before submitting.'; errBox.style.display='block'; return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ errBox.textContent='Please enter a valid email address.'; errBox.style.display='block'; return; }
+    // Spam guards: a hidden field real people never fill in, and a form that is filled in faster than a person could.
+    if(v('cf-website') || (Date.now()-pageLoaded) < 4000){ showDone(); return; }
+    btn.disabled=true; btn.textContent='Sending\u2026';
+    fetch(SB_URL + '/rest/v1/contact_requests', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+      body:JSON.stringify({first_name:first,last_name:last,email:email,organization:org,role:role,message:(product?'Interest: '+product+'\n\n':'')+message})
+    }).then(function(r){
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      showDone();
+    }).catch(function(e){
+      console.warn('Contact store:', e);
+      errBox.textContent='Sorry, your message could not be sent just now. Please try again in a few minutes.';
+      errBox.style.display='block'; btn.disabled=false; btn.textContent='Send Message \u2192';
+    });
+  }
+  function showDone(){ document.getElementById('form-fields').style.display='none'; document.getElementById('form-success').style.display='block'; }
+</script>
+</body>
+</html>
