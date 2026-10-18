@@ -1,5 +1,15 @@
 [[redirects]]
   from = "/"
+  to = "/marketing-home.html"
+  status = 200
+
+[[redirects]]
+  from = "/sign-in"
+  to = "/login.html"
+  status = 200
+
+[[redirects]]
+  from = "/signin"
   to = "/login.html"
   status = 200
 
