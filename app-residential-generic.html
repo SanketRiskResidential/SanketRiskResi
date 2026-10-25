@@ -315,6 +315,27 @@
   const SUPABASE_KEY = 'sb_publishable_X7JifOrQKvkCwGD7DQpPZg_-6jB5j3Z';
   const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+  // ── SanketRisk: send the signed-in user's token to the AI review service ──
+  (function () {
+    var _origFetch = window.fetch.bind(window);
+    window.fetch = async function (input, init) {
+      var url = typeof input === 'string' ? input : (input && input.url) || '';
+      if (url.indexOf('hrmjrj5zqfigu7ctj55qggskym0zqlmd.lambda-url.') !== -1) {
+        try {
+          var r = await _supabase.auth.getSession();
+          var t = r.data && r.data.session ? r.data.session.access_token : '';
+          if (t) {
+            init = init || {};
+            var h = new Headers(init.headers || (typeof input !== 'string' && input.headers) || {});
+            if (!h.has('Authorization')) h.set('Authorization', 'Bearer ' + t);
+            init.headers = h;
+          }
+        } catch (e) {}
+      }
+      return _origFetch(input, init);
+    };
+  })();
+
   var currentInspectionId = null;
   var currentStatus = 'draft'; // the status this inspection actually has right now
   var myRole = 'none';
@@ -648,7 +669,7 @@
       // network layers well before the Lambda finishes, and the Lambda
       // keeps running regardless, so poll the database for the real result.
       window._lastAIReviewNetError = netErr && netErr.message ? netErr.message : String(netErr);
-      resultsEl.innerHTML = '<div style="font-size:12px;color:var(--slate);padding:10px;">Connection dropped waiting for a response — checking whether the review actually completed…</div>';
+      resultsEl.innerHTML = '<div style="font-size:12px;color:var(--slate);padding:10px;">Waiting for the pre-review results — this can take up to a minute…</div>';
       pollAIPreReviewResult(requestStartedAt, 10);
       return;
     }
