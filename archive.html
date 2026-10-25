@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SanketRisk Home — Archive</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #2d3b2e; --navy-mid: #3d4f3f; --navy-light: #526b55;
+    --gold: #c17a56; --gold-light: #d99b7a; --gold-pale: #f3e2d6;
+    --slate: #6b5d52; --slate-light: #a69686; --border: #ddd2c4; --bg: #f7f4ef; --card-bg: #ffffff;
+  }
+  html, body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--navy); }
+  .topnav { background: var(--navy); color: #fff; height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; }
+  .nav-logo { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; }
+  .nav-logo span { color: var(--gold-light); }
+  .back { color: #cfd8cf; font-size: 13px; text-decoration: none; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; padding: 5px 12px; }
+  .back:hover { border-color: var(--gold); color: var(--gold); }
+  .main { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+  h1 { font-family: 'Playfair Display', serif; font-size: 26px; }
+  .sub { font-size: 13px; color: var(--slate); margin: 4px 0 20px; }
+  .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .tab { background: none; border: none; padding: 10px 16px; font-size: 14px; font-weight: 600; color: var(--slate); cursor: pointer; font-family: inherit; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+  .tab.on { color: var(--navy); border-bottom-color: var(--gold); }
+  .bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .bar input[type=search] { flex: 1; min-width: 200px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: #fff; }
+  .btn { padding: 9px 16px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn:hover { background: var(--navy-mid); } .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn.gold { background: var(--gold); } .btn.gold:hover { background: var(--gold-light); }
+  .btn.sm { padding: 5px 11px; font-size: 12px; }
+  .btn.ghost { background: #fff; color: var(--navy); border: 1px solid var(--border); }
+  .btn.danger { background: #fff; color: #c0392b; border: 1px solid #c0392b; }
+  .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--slate); padding: 11px 14px; border-bottom: 1px solid var(--border); background: #faf7f2; white-space: nowrap; }
+  td { padding: 11px 14px; border-bottom: 1px solid #efe8dd; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .muted { color: var(--slate); font-size: 12px; }
+  .empty { padding: 36px 16px; text-align: center; color: var(--slate); font-size: 14px; }
+  .pager { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; font-size: 13px; color: var(--slate); flex-wrap: wrap; }
+  .pager .btns { display: flex; gap: 8px; align-items: center; }
+  .upload { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 16px; display: none; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid .full { grid-column: 1 / -1; }
+  .f label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--slate); margin-bottom: 5px; }
+  .f input, .f textarea { width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 7px; font-size: 14px; font-family: inherit; background: var(--bg); color: var(--navy); }
+  .f textarea { min-height: 64px; resize: vertical; }
+  .msg { font-size: 13px; margin-top: 10px; }
+  .msg.err { color: #c0392b; } .msg.ok { color: #276749; }
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--navy); color: #fff; padding: 10px 22px; border-radius: 8px; font-size: 13px; display: none; z-index: 50; }
+  @media (max-width: 700px) { .topnav { padding: 0 14px; } .grid { grid-template-columns: 1fr; } .main { padding: 20px 12px 50px; } }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <div class="nav-logo">Sanket<span>Risk</span> Home</div>
+  <a class="back" href="/dashboard.html">← Back to dashboard</a>
+</nav>
+
+<div class="main">
+  <h1>📁 Archive</h1>
+  <div class="sub" id="sub">Completed jobs and uploaded reports.</div>
+
+  <div class="tabs">
+    <button class="tab on" id="tab-jobs" onclick="setTab('jobs')">Completed jobs</button>
+    <button class="tab" id="tab-files" onclick="setTab('files')">Uploaded files</button>
+  </div>
+
+  <div class="upload" id="upload-box">
+    <div class="grid">
+      <div class="f full"><label>PDF or Word file (up to 50 MB)</label><input type="file" id="u-file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></div>
+      <div class="f full"><label>Title *</label><input type="text" id="u-title" maxlength="200" placeholder="e.g. Smith — 12 Oak Street inspection report"></div>
+      <div class="f"><label>Owner / Insured</label><input type="text" id="u-insured" maxlength="200"></div>
+      <div class="f"><label>Street address</label><input type="text" id="u-address" maxlength="200"></div>
+      <div class="f"><label>City</label><input type="text" id="u-city" maxlength="100"></div>
+      <div class="f"><label>Province / State</label><input type="text" id="u-prov" maxlength="50"></div>
+      <div class="f"><label>Inspection date</label><input type="date" id="u-date"></div>
+      <div class="f full"><label>Notes</label><textarea id="u-notes" maxlength="2000"></textarea></div>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:10px;">
+      <button class="btn gold" id="u-btn" onclick="uploadFile()">Upload to archive</button>
+      <button class="btn ghost" onclick="toggleUpload()">Cancel</button>
+    </div>
+    <div class="msg" id="u-msg"></div>
+  </div>
+
+  <div class="bar">
+    <input type="search" id="q" placeholder="Search by name, address, city…" autocomplete="off">
+    <button class="btn ghost" onclick="runSearch()">Search</button>
+    <button class="btn gold" id="btn-upload" style="display:none" onclick="toggleUpload()">＋ Upload a file</button>
+  </div>
+
+  <div class="card" id="list"><div class="empty">Loading…</div></div>
+  <div class="pager" id="pager"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+  const SUPABASE_URL = 'https://lkihphmtyusqmnhbfswq.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_X7JifOrQKvkCwGD7DQpPZg_-6jB5j3Z';
+  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { autoRefreshToken: true, persistSession: true } });
+  const PAGE = 15, BUCKET = 'residential-archive', MAX_BYTES = 50 * 1024 * 1024;
+  const TYPE_LABELS = { residential_lite: 'Residential Lite', residential_full: 'Full Residential', residential_mh: 'Residential Manufactured',
+    residential_mh_full: 'Full Residential Manufactured', exterior: 'Exterior', exterior_mh: 'Exterior Manufactured', exterior_interior: 'Exterior / Interior',
+    a_and_a: 'A&A', a_and_a_full: 'Full A&A', additional_structures: 'Additional Structures', supplementary: 'Supplementary Form' };
+  let myRole = '', myName = '', tab = 'jobs', page = 0, term = '', reqSeq = 0;
+
+  function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function fmtDate(d) { if (!d) return '—'; var x = new Date(d); return isNaN(x) ? '—' : x.toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' }); }
+  function fmtSize(n) { if (!n) return '—'; return n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB'; }
+  function toast(m) { var t = document.getElementById('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 3500); }
+
+  function setTab(t) {
+    tab = t; page = 0;
+    document.getElementById('tab-jobs').className = 'tab' + (t === 'jobs' ? ' on' : '');
+    document.getElementById('tab-files').className = 'tab' + (t === 'files' ? ' on' : '');
+    document.getElementById('btn-upload').style.display = (t === 'files' && myRole === 'admin') ? '' : 'none';
+    if (t !== 'files') document.getElementById('upload-box').style.display = 'none';
+    load();
+  }
+  function runSearch() { term = document.getElementById('q').value.trim(); page = 0; load(); }
+  function goPage(p) { page = p; load(); }
+  function toggleUpload() { var b = document.getElementById('upload-box'); b.style.display = b.style.display === 'block' ? 'none' : 'block'; }
+
+  function renderPager(total) {
+    var pages = Math.max(1, Math.ceil(total / PAGE));
+    var from = total ? page * PAGE + 1 : 0, to = Math.min(total, (page + 1) * PAGE);
+    document.getElementById('pager').innerHTML =
+      '<div>' + (total ? 'Showing ' + from + '–' + to + ' of ' + total : '') + '</div>' +
+      (pages > 1 ? '<div class="btns"><button class="btn sm ghost" ' + (page === 0 ? 'disabled' : '') + ' onclick="goPage(' + (page - 1) + ')">← Previous</button>' +
+        '<span>Page ' + (page + 1) + ' of ' + pages + '</span>' +
+        '<button class="btn sm ghost" ' + (page >= pages - 1 ? 'disabled' : '') + ' onclick="goPage(' + (page + 1) + ')">Next →</button></div>' : '');
+  }
+
+  async function load() {
+    var seq = ++reqSeq, list = document.getElementById('list');
+    list.innerHTML = '<div class="empty">Loading…</div>';
+    try {
+      if (tab === 'jobs') {
+        const { data, error } = await _supabase.rpc('archive_completed_jobs', { p_search: term, p_limit: PAGE, p_offset: page * PAGE });
+        if (seq !== reqSeq) return;
+        if (error) throw error;
+        var rows = (data && data.rows) || [], total = (data && data.total) || 0;
+        if (!rows.length) { list.innerHTML = '<div class="empty">' + (term ? 'No completed jobs match your search.' : 'No completed jobs yet.') + '</div>'; renderPager(0); return; }
+        list.innerHTML = '<table><thead><tr><th>Property</th><th>Type</th><th>Inspector</th><th>Completed</th><th></th></tr></thead><tbody>' +
+          rows.map(function (r) {
+            var where = [r.location, r.city, r.province_state].filter(Boolean).join(', ');
+            return '<tr><td><strong>' + esc(r.insured_name || '—') + '</strong><div class="muted">' + esc(where) + (r.request_ref ? ' · ' + esc(r.request_ref) : '') + '</div></td>' +
+              '<td>' + esc(TYPE_LABELS[r.inspection_type] || '—') + '</td><td>' + esc(r.inspector_name || '—') + '</td>' +
+              '<td>' + esc(fmtDate(r.released_at || r.updated_at)) + '</td>' +
+              '<td><a class="btn sm" style="text-decoration:none;display:inline-block" target="_blank" rel="noopener" href="/report-residential-lite.html?id=' + encodeURIComponent(r.id) + '">View report</a></td></tr>';
+          }).join('') + '</tbody></table>';
+        renderPager(total);
+      } else {
+        var q = _supabase.from('archived_files').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(page * PAGE, page * PAGE + PAGE - 1);
+        // Keep only plain characters in the search so it cannot alter the query
+        var t = term.replace(/[^\p{L}\p{N} .'&@#\/-]/gu, ' ').replace(/\s+/g, ' ').trim();
+        if (t) { var w = '*' + t + '*'; q = q.or(['title', 'insured_name', 'address', 'city', 'file_name', 'notes'].map(function (c) { return c + '.ilike.' + w; }).join(',')); }
+        const { data, error, count } = await q;
+        if (seq !== reqSeq) return;
+        if (error) throw error;
+        if (!data || !data.length) { list.innerHTML = '<div class="empty">' + (term ? 'No files match your search.' : 'No files uploaded yet.') + '</div>'; renderPager(0); return; }
+        list.innerHTML = '<table><thead><tr><th>Title</th><th>Property</th><th>Date</th><th>File</th><th></th></tr></thead><tbody>' +
+          data.map(function (r) {
+            var where = [r.address, r.city, r.province_state].filter(Boolean).join(', ');
+            return '<tr><td><strong>' + esc(r.title) + '</strong>' + (r.notes ? '<div class="muted">' + esc(r.notes.length > 140 ? r.notes.slice(0, 140) + '…' : r.notes) + '</div>' : '') + '</td>' +
+              '<td>' + esc(r.insured_name || '—') + '<div class="muted">' + esc(where) + '</div></td>' +
+              '<td>' + esc(fmtDate(r.inspection_date || r.created_at)) + '</td>' +
+              '<td>' + esc(r.file_name) + '<div class="muted">' + esc(fmtSize(r.file_size)) + '</div></td>' +
+              '<td style="white-space:nowrap"><button class="btn sm" onclick="downloadFile(\'' + esc(r.id) + '\')">Download</button>' +
+              (myRole === 'admin' ? ' <button class="btn sm danger" onclick="deleteFile(\'' + esc(r.id) + '\')">Delete</button>' : '') + '</td></tr>';
+          }).join('') + '</tbody></table>';
+        renderPager(count || 0);
+      }
+    } catch (e) {
+      if (seq !== reqSeq) return;
+      list.innerHTML = '<div class="empty" style="color:#c0392b">Could not load: ' + esc(e.message || e) + '</div>';
+      document.getElementById('pager').innerHTML = '';
+    }
+  }
+
+  async function getRow(id) {
+    const { data, error } = await _supabase.from('archived_files').select('*').eq('id', id).single();
+    if (error) throw error; return data;
+  }
+  async function downloadFile(id) {
+    try {
+      var r = await getRow(id);
+      const { data, error } = await _supabase.storage.from(BUCKET).createSignedUrl(r.storage_path, 60, { download: r.file_name });
+      if (error) throw error;
+      var a = document.createElement('a'); a.href = data.signedUrl; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove();
+    } catch (e) { toast('⚠ Download failed: ' + (e.message || e)); }
+  }
+  async function deleteFile(id) {
+    try {
+      var r = await getRow(id);
+      if (!confirm('Delete "' + r.title + '" from the archive? This cannot be undone.')) return;
+      const { error } = await _supabase.from('archived_files').delete().eq('id', id);
+      if (error) throw error;
+      await _supabase.storage.from(BUCKET).remove([r.storage_path]);
+      toast('✓ Deleted'); load();
+    } catch (e) { toast('⚠ Delete failed: ' + (e.message || e)); }
+  }
+
+  async function uploadFile() {
+    var msg = document.getElementById('u-msg'), btn = document.getElementById('u-btn');
+    function fail(t) { msg.className = 'msg err'; msg.textContent = t; }
+    msg.textContent = '';
+    var f = document.getElementById('u-file').files[0];
+    var title = document.getElementById('u-title').value.trim();
+    if (!f) return fail('Choose a PDF or Word file first.');
+    var ext = (f.name.split('.').pop() || '').toLowerCase();
+    var TYPES = { pdf: 'application/pdf', doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' };
+    if (!TYPES[ext]) return fail('Only PDF, DOC and DOCX files can be uploaded.');
+    if (f.size > MAX_BYTES) return fail('That file is over 50 MB.');
+    if (!title) title = f.name.replace(/\.[^.]+$/, '');
+    btn.disabled = true; btn.textContent = 'Uploading…';
+    var path = crypto.randomUUID() + '-' + f.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    try {
+      const up = await _supabase.storage.from(BUCKET).upload(path, f, { contentType: TYPES[ext] });
+      if (up.error) throw up.error;
+      const ins = await _supabase.from('archived_files').insert({
+        title: title, insured_name: document.getElementById('u-insured').value.trim() || null,
+        address: document.getElementById('u-address').value.trim() || null, city: document.getElementById('u-city').value.trim() || null,
+        province_state: document.getElementById('u-prov').value.trim() || null, inspection_date: document.getElementById('u-date').value || null,
+        notes: document.getElementById('u-notes').value.trim() || null,
+        file_name: f.name, file_type: ext, file_size: f.size, storage_path: path, uploaded_by_name: myName
+      });
+      if (ins.error) { await _supabase.storage.from(BUCKET).remove([path]); throw ins.error; }
+      ['u-file', 'u-title', 'u-insured', 'u-address', 'u-city', 'u-prov', 'u-date', 'u-notes'].forEach(function (i) { document.getElementById(i).value = ''; });
+      document.getElementById('upload-box').style.display = 'none';
+      toast('✓ Uploaded'); page = 0; load();
+    } catch (e) { fail('Upload failed: ' + (e.message || e)); }
+    btn.disabled = false; btn.textContent = 'Upload to archive';
+  }
+
+  document.getElementById('q').addEventListener('keydown', function (e) { if (e.key === 'Enter') runSearch(); });
+
+  (async function init() {
+    const { data: { session } } = await _supabase.auth.getSession();
+    if (!session) { window.location.replace('/login.html'); return; }
+    const aal = await _supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal.data && aal.data.nextLevel === 'aal2' && aal.data.currentLevel !== 'aal2') { window.location.replace('/login.html'); return; }
+    const { data: prof } = await _supabase.from('profiles').select('role, full_name, email').eq('id', session.user.id).maybeSingle();
+    myRole = (prof && prof.role) || 'pending';
+    myName = (prof && (prof.full_name || prof.email)) || session.user.email || '';
+    if (myRole !== 'admin' && myRole !== 'reviewer') {
+      document.getElementById('sub').textContent = '';
+      document.getElementById('list').innerHTML = '<div class="empty">The archive is available to administrators and reviewers.</div>';
+      document.querySelector('.tabs').style.display = 'none'; document.querySelector('.bar').style.display = 'none';
+      return;
+    }
+    document.getElementById('sub').textContent = myRole === 'admin'
+      ? 'Every completed job, plus the PDF and Word reports you upload. Only administrators can upload or delete.'
+      : 'Every completed job, plus uploaded PDF and Word reports. You can search and download.';
+    load();
+  })();
+</script>
+</body>
+</html>

@@ -136,6 +136,7 @@
     <div class="nav-right">
       <span class="nav-user">Signed in as <strong id="nav-name">—</strong></span>
       <span class="role-pill pending" id="nav-role-pill">…</span>
+      <a href="/archive.html" id="nav-archive" class="btn-signout" style="display:none;text-decoration:none;margin-right:6px;">📁 Archive</a>
       <a href="/security.html" class="btn-signout" style="text-decoration:none;margin-right:6px;">🔐 Security</a>
       <button class="btn-signout" onclick="signOut()">Sign Out</button>
     </div>
@@ -663,6 +664,7 @@
     myRole = (prof && prof.role) || 'pending';
     myName = (prof && (prof.full_name || prof.email)) || me.email || 'User';
     document.getElementById('nav-name').textContent = myName;
+    if (myRole === 'admin' || myRole === 'reviewer') document.getElementById('nav-archive').style.display = 'inline-block';
     var pill = document.getElementById('nav-role-pill');
     pill.textContent = myRole; pill.className = 'role-pill ' + myRole;
     if (['admin','inspector','reviewer','requestor'].indexOf(myRole) === -1) {
