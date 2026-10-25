@@ -136,6 +136,7 @@
     <div class="nav-right">
       <span class="nav-user">Signed in as <strong id="nav-name">—</strong></span>
       <span class="role-pill pending" id="nav-role-pill">…</span>
+      <a href="/security.html" class="btn-signout" style="text-decoration:none;margin-right:6px;">🔐 Security</a>
       <button class="btn-signout" onclick="signOut()">Sign Out</button>
     </div>
   </nav>
@@ -654,6 +655,9 @@
   (async function init() {
     const { data: { session } } = await _supabase.auth.getSession();
     if (!session) { window.location.replace('/login.html'); return; }
+    // Two-step sign-in: an account with an authenticator app must have entered its code
+    const _aal = await _supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (_aal.data && _aal.data.nextLevel === 'aal2' && _aal.data.currentLevel !== 'aal2') { window.location.replace('/login.html'); return; }
     me = session.user;
     const { data: prof } = await _supabase.from('profiles').select('role, full_name, email').eq('id', me.id).maybeSingle();
     myRole = (prof && prof.role) || 'pending';
