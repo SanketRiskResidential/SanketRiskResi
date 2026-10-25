@@ -51,16 +51,26 @@
   <div class="login-card">
     <div class="brand-icon">🏠</div>
     <div class="brand-title">SanketRisk <span>Home</span></div>
-    <div class="form-sub">Sign in to your SanketRisk Home account</div>
-    <div class="field">
-      <label>Email</label>
-      <input type="email" id="login-email" autocomplete="username" placeholder="you@example.com">
+    <div class="form-sub" id="form-sub">Sign in to your SanketRisk Home account</div>
+    <div id="pw-step">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="login-email" autocomplete="username" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="login-password" autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <button class="btn-signin" id="btn-signin" onclick="doSignIn()">Sign In</button>
     </div>
-    <div class="field">
-      <label>Password</label>
-      <input type="password" id="login-password" autocomplete="current-password" placeholder="••••••••">
+    <div id="mfa-step" style="display:none">
+      <div class="field">
+        <label>6-digit code from your authenticator app</label>
+        <input type="text" id="mfa-code" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="123456" autocomplete="one-time-code">
+      </div>
+      <button class="btn-signin" id="mfa-btn" onclick="verifyMfa()">Verify &amp; Continue</button>
+      <div style="margin-top:16px;text-align:center;font-size:12.5px"><a href="#" onclick="cancelMfa();return false" style="color:var(--slate)">Use a different account</a></div>
     </div>
-    <button class="btn-signin" id="btn-signin" onclick="doSignIn()">Sign In</button>
     <div class="error-msg" id="error-msg"></div>
   </div>
 
@@ -69,7 +79,47 @@
   // anon (public) key — found under Project Settings → API in Supabase.
   const SUPABASE_URL = 'https://lkihphmtyusqmnhbfswq.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_X7JifOrQKvkCwGD7DQpPZg_-6jB5j3Z';
-  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { autoRefreshToken: true, persistSession: true } });
+
+  // Two-step sign-in: if the account has an authenticator app set up, a code is required.
+  let _mfaFactorIds = [];
+  function showErr(msg) { var e = document.getElementById('error-msg'); e.textContent = msg; e.style.display = 'block'; }
+  async function needsMfa() {
+    const { data } = await _supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    return !!(data && data.nextLevel === 'aal2' && data.currentLevel !== 'aal2');
+  }
+  async function showMfaStep() {
+    const { data, error } = await _supabase.auth.mfa.listFactors();
+    const f = data && data.totp && data.totp[0];
+    if (error || !f) { showErr('Could not start two-step sign-in. Please try again.'); await _supabase.auth.signOut(); return; }
+    _mfaFactorIds = data.totp.map(function (x) { return x.id; });
+    document.getElementById('pw-step').style.display = 'none';
+    document.getElementById('mfa-step').style.display = 'block';
+    document.getElementById('form-sub').textContent = 'Open your authenticator app and enter the current code';
+    document.getElementById('error-msg').style.display = 'none';
+    document.getElementById('mfa-code').focus();
+  }
+  async function verifyMfa() {
+    const code = document.getElementById('mfa-code').value.replace(/\s/g, '');
+    const btn = document.getElementById('mfa-btn');
+    if (!/^\d{6}$/.test(code)) { showErr('Enter the 6-digit code from your app.'); return; }
+    btn.disabled = true; btn.textContent = 'Verifying…';
+    // An account can have more than one authenticator app (each has its own secret): try each.
+    let error = { message: 'no factor' };
+    for (const id of _mfaFactorIds) {
+      const r = await _supabase.auth.mfa.challengeAndVerify({ factorId: id, code });
+      error = r.error;
+      if (!error) break;
+    }
+    if (error) {
+      showErr('That code was not accepted. Check the code and try again.');
+      btn.disabled = false; btn.textContent = 'Verify & Continue';
+      document.getElementById('mfa-code').value = ''; document.getElementById('mfa-code').focus();
+      return;
+    }
+    window.location.replace('/dashboard.html');
+  }
+  async function cancelMfa() { await _supabase.auth.signOut(); window.location.reload(); }
 
   async function doSignIn() {
     var email = document.getElementById('login-email').value.trim();
@@ -77,28 +127,29 @@
     var errEl = document.getElementById('error-msg');
     var btn = document.getElementById('btn-signin');
     errEl.style.display = 'none';
-    if (!email || !password) { errEl.textContent = 'Please enter both email and password.'; errEl.style.display = 'block'; return; }
+    if (!email || !password) { showErr('Please enter both email and password.'); return; }
     btn.disabled = true; btn.textContent = 'Signing in…';
     try {
       const { error } = await _supabase.auth.signInWithPassword({ email: email, password: password });
       if (error) throw error;
+      if (await needsMfa()) { await showMfaStep(); return; }
       window.location.replace('/dashboard.html');
     } catch (e) {
-      errEl.textContent = e.message || 'Sign in failed — please check your email and password.';
-      errEl.style.display = 'block';
+      showErr(e.message || 'Sign in failed — please check your email and password.');
       btn.disabled = false; btn.textContent = 'Sign In';
     }
   }
 
-  // If already signed in, skip straight to the dashboard
+  // If already signed in, continue (asking for the code first if the account has two-step sign-in)
   (async function checkExistingSession() {
     const { data: { session } } = await _supabase.auth.getSession();
-    if (session) window.location.replace('/dashboard.html');
+    if (!session) return;
+    if (await needsMfa()) { await showMfaStep(); return; }
+    window.location.replace('/dashboard.html');
   })();
 
-  document.getElementById('login-password').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') doSignIn();
-  });
+  document.getElementById('login-password').addEventListener('keydown', function (e) { if (e.key === 'Enter') doSignIn(); });
+  document.getElementById('mfa-code').addEventListener('keydown', function (e) { if (e.key === 'Enter') verifyMfa(); });
 </script>
 </body>
 </html>
