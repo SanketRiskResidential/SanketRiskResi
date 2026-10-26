@@ -102,6 +102,9 @@
   .legal .concl .amt { font-family: 'Playfair Display', serif; font-size: 22px; }
   @media (max-width: 700px) { .legal .cols { columns: 1; } }
   @media (max-width: 700px) { .page { padding: 24px 18px; margin: 0; border: none; border-radius: 0; } .grid, .photos { grid-template-columns: 1fr; } .head { flex-direction: column; gap: 10px; } .head .logo { text-align: left; } }
+  /* Inspectors are view-only: nothing prints or downloads from here */
+  @media print { body.view-only { display: none !important; } }
+  body.view-only #btn-print { display: none !important; }
   @media print {
     body { background: #fff; }
     .toolbar { display: none; }
@@ -115,7 +118,7 @@
     <div class="brand">Sanket<span>Risk</span> Home</div>
     <div>
       <button class="btn ghost" onclick="window.close(); window.location.href='/dashboard.html'">← Back</button>
-      <button class="btn" onclick="window.print()">Download / Print (Save as PDF)</button>
+      <button class="btn" id="btn-print" onclick="window.print()">Download / Print (Save as PDF)</button>
     </div>
   </div>
   <div id="root"><div class="msg">Loading report…</div></div>
@@ -124,6 +127,13 @@
   const SUPABASE_URL = 'https://lkihphmtyusqmnhbfswq.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_X7JifOrQKvkCwGD7DQpPZg_-6jB5j3Z';
   const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // View-only until the role is confirmed (fails closed). Admins, reviewers and requestors may print/download.
+  document.body.classList.add('view-only');
+  (function () {
+    var _origPrint = window.print.bind(window);
+    window.print = function () { if (!document.body.classList.contains('view-only')) _origPrint(); };
+  })();
 
   var TYPE_LABELS = { residential_lite: 'Residential Lite', residential_full: 'Full Residential', residential_mh: 'Residential Manufactured', residential_mh_full: 'Full Residential Manufactured', exterior: 'Exterior', exterior_mh: 'Exterior Manufactured', a_and_a_full: 'Full A&A', exterior_interior: 'Exterior / Interior', a_and_a: 'A&A', additional_structures: 'Additional Structures', supplementary: 'Supplementary Form' };
 
@@ -331,6 +341,10 @@
     var root = document.getElementById('root');
     const { data: { session } } = await _supabase.auth.getSession();
     if (!session) { window.location.replace('/login.html'); return; }
+    try {
+      const { data: prof } = await _supabase.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+      if (prof && ['admin', 'reviewer', 'requestor'].indexOf(prof.role) !== -1) document.body.classList.remove('view-only');
+    } catch (e) { /* stays view-only */ }
     var id = new URLSearchParams(window.location.search).get('id');
     if (!id) { root.innerHTML = '<div class="msg">No report specified.</div>'; return; }
     const { data, error } = await _supabase.rpc('get_report_data', { p_id: id });
