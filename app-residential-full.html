@@ -719,7 +719,7 @@
     var requestStartedAt = new Date().toISOString();
     var resetBtn = function() { btn.disabled = false; btn.textContent = '🤖 AI Pre-Review — Check for Issues Before Submitting'; };
     var showFailure = function(msg) {
-      resultsEl.innerHTML = '<div style="font-size:12px;color:#C53030;padding:10px;line-height:1.5;">⚠ ' + msg + '</div>';
+      resultsEl.innerHTML = '<div style="font-size:12px;color:#C53030;padding:10px;line-height:1.5;">⚠ ' + esc(msg) + '</div>';
       resetBtn();
     };
     var resp;

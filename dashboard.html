@@ -233,6 +233,8 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
+  // for values placed inside a quoted JS string within an inline handler, e.g. onclick="f('...')"
+  function escJs(s) { return String(s == null ? '' : s).replace(/[^\w .@\-\/:,]/g, function(c) { return '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4); }); }
   function fmtDate(ts) { if (!ts) return '—'; var d = new Date(ts); return isNaN(d) ? '—' : d.toLocaleDateString(); }
   function fmtDateTime(ts) { if (!ts) return ''; var d = new Date(ts); return isNaN(d) ? '' : d.toLocaleString(); }
   function showToast(msg) {
@@ -365,17 +367,17 @@
       var st = statusInfo(r);
       var inspState = r.inspector_id ? '<div class="assign-state ' + esc(r.inspector_status) + '">' + (r.inspector_status === 'accepted' ? '✓ accepted' : '⏳ awaiting acceptance') + '</div>' : '';
       var revState = r.reviewer_id ? '<div class="assign-state ' + esc(r.reviewer_status) + '">' + (r.reviewer_status === 'accepted' ? '✓ accepted' : '⏳ awaiting acceptance') + '</div>' : '';
-      var actions = '<button class="btn-sm" onclick="openJob(\'' + r.id + '\')">Open</button>' +
-        '<button class="btn-sm" onclick="openLog(\'' + r.id + '\')">Log</button>' +
-        '<button class="btn-sm" onclick="viewReport(\'' + r.id + '\')">Report</button>';
-      if (r.report_status === 'approved' && !r.released_at) actions += '<button class="btn-sm good" onclick="releaseJob(\'' + r.id + '\')">Release</button>';
-      actions += '<button class="btn-sm danger" onclick="deleteJob(\'' + r.id + '\')">Delete</button>';
+      var actions = '<button class="btn-sm" onclick="openJob(\'' + escJs(r.id) + '\')">Open</button>' +
+        '<button class="btn-sm" onclick="openLog(\'' + escJs(r.id) + '\')">Log</button>' +
+        '<button class="btn-sm" onclick="viewReport(\'' + escJs(r.id) + '\')">Report</button>';
+      if (r.report_status === 'approved' && !r.released_at) actions += '<button class="btn-sm good" onclick="releaseJob(\'' + escJs(r.id) + '\')">Release</button>';
+      actions += '<button class="btn-sm danger" onclick="deleteJob(\'' + escJs(r.id) + '\')">Delete</button>';
       return '<tr>' +
         '<td>' + propertyCell(r) + '</td>' +
         '<td>' + esc(TYPE_LABELS[r.inspection_type] || '—') + '</td>' +
         '<td>' + badge(st) + '</td>' +
-        '<td><select class="assign-select" id="insp-' + r.id + '" onchange="assignChanged(\'' + r.id + '\')">' + personOptions(['inspector','admin'], r.inspector_id) + '</select>' + inspState + '</td>' +
-        '<td><select class="assign-select" id="rev-' + r.id + '" onchange="assignChanged(\'' + r.id + '\')">' + personOptions(['reviewer','admin'], r.reviewer_id) + '</select>' + revState + '</td>' +
+        '<td><select class="assign-select" id="insp-' + esc(r.id) + '" onchange="assignChanged(\'' + escJs(r.id) + '\')">' + personOptions(['inspector','admin'], r.inspector_id) + '</select>' + inspState + '</td>' +
+        '<td><select class="assign-select" id="rev-' + esc(r.id) + '" onchange="assignChanged(\'' + escJs(r.id) + '\')">' + personOptions(['reviewer','admin'], r.reviewer_id) + '</select>' + revState + '</td>' +
         '<td>' + esc(personName(r.requestor_id) || '—') + '</td>' +
         '<td>' + fmtDate(r.updated_at) + '</td>' +
         '<td>' + actions + '</td></tr>';
@@ -385,13 +387,13 @@
   function usersTableHtml() {
     var rows = profiles.map(function(p) {
       var isSelf = me && p.id === me.id;
-      var roleSel = '<select class="assign-select" id="role-' + p.id + '"' + (isSelf ? ' disabled title="You cannot change your own role"' : '') + '>' +
+      var roleSel = '<select class="assign-select" id="role-' + esc(p.id) + '"' + (isSelf ? ' disabled title="You cannot change your own role"' : '') + '>' +
         ['admin','inspector','reviewer','requestor','pending'].map(function(r) { return '<option value="' + r + '"' + (p.role === r ? ' selected' : '') + '>' + r + '</option>'; }).join('') + '</select>';
       return '<tr><td>' + esc(p.email) + '</td>' +
-        '<td><input class="assign-select" style="max-width:190px;" id="uname-' + p.id + '" value="' + esc(p.full_name || '') + '"></td>' +
-        '<td><input class="assign-select" style="max-width:190px;" id="uorg-' + p.id + '" value="' + esc(p.organization || '') + '" placeholder="(clients)"></td>' +
+        '<td><input class="assign-select" style="max-width:190px;" id="uname-' + esc(p.id) + '" value="' + esc(p.full_name || '') + '"></td>' +
+        '<td><input class="assign-select" style="max-width:190px;" id="uorg-' + esc(p.id) + '" value="' + esc(p.organization || '') + '" placeholder="(clients)"></td>' +
         '<td>' + roleSel + '</td>' +
-        '<td><button class="btn-sm good" onclick="saveUser(\'' + p.id + '\')">Save</button></td></tr>';
+        '<td><button class="btn-sm good" onclick="saveUser(\'' + escJs(p.id) + '\')">Save</button></td></tr>';
     }).join('');
     return '<div class="table-card"><div class="help-note">To add someone: in Supabase go to <strong>Authentication → Users → Add user</strong> (email + password), then come back here and give them a name and a role. New logins start as <strong>pending</strong> and can see nothing until you do.</div>' +
       '<div class="table-scroll-wrap"><table><thead><tr><th>Email</th><th>Name</th><th>Organization</th><th>Role</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
@@ -505,13 +507,13 @@
       var st = statusInfo(r);
       var actions;
       if (myPending(r)) {
-        actions = '<button class="btn-sm good" onclick="respond(\'' + r.id + '\',\'accept\')">Accept</button>' +
-                  '<button class="btn-sm danger" onclick="respond(\'' + r.id + '\',\'decline\')">Decline</button>' +
-                  '<button class="btn-sm" onclick="openLog(\'' + r.id + '\')">Log</button>';
+        actions = '<button class="btn-sm good" onclick="respond(\'' + escJs(r.id) + '\',\'accept\')">Accept</button>' +
+                  '<button class="btn-sm danger" onclick="respond(\'' + escJs(r.id) + '\',\'decline\')">Decline</button>' +
+                  '<button class="btn-sm" onclick="openLog(\'' + escJs(r.id) + '\')">Log</button>';
       } else {
-        actions = '<button class="btn-sm gold" onclick="openJob(\'' + r.id + '\')">Open</button>' +
-                  '<button class="btn-sm" onclick="openLog(\'' + r.id + '\')">Log</button>' +
-                  '<button class="btn-sm danger" onclick="respond(\'' + r.id + '\',\'decline\')" title="Hand this job back to the administrator">Transfer back</button>';
+        actions = '<button class="btn-sm gold" onclick="openJob(\'' + escJs(r.id) + '\')">Open</button>' +
+                  '<button class="btn-sm" onclick="openLog(\'' + escJs(r.id) + '\')">Log</button>' +
+                  '<button class="btn-sm danger" onclick="respond(\'' + escJs(r.id) + '\',\'decline\')" title="Hand this job back to the administrator">Transfer back</button>';
       }
       return '<tr><td>' + propertyCell(r) + '</td><td>' + esc(TYPE_LABELS[r.inspection_type] || '—') + '</td><td>' + badge(st) + '</td><td>' + fmtDate(r.updated_at) + '</td><td>' + actions + '</td></tr>';
     }).join('');
@@ -541,8 +543,8 @@
       html += '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🏠</div>No requests yet — click "Request an Inspection" to start one.</div></td></tr>';
     } else {
       html += jobs.map(function(r) {
-        var actions = '<button class="btn-sm" onclick="openLog(\'' + r.id + '\')">Updates</button>';
-        if (r.released_at) actions += '<button class="btn-sm good" onclick="viewReport(\'' + r.id + '\')">Download Report</button>';
+        var actions = '<button class="btn-sm" onclick="openLog(\'' + escJs(r.id) + '\')">Updates</button>';
+        if (r.released_at) actions += '<button class="btn-sm good" onclick="viewReport(\'' + escJs(r.id) + '\')">Download Report</button>';
         return '<tr><td>' + propertyCell(r) + '</td><td>' + esc(TYPE_LABELS[r.inspection_type] || '—') + '</td><td>' + fmtDate(r.created_at) + '</td>' +
                '<td><span class="status-badge s-' + (r.released_at ? 'released' : 'client') + '">' + esc(r.client_status) + '</span></td><td>' + actions + '</td></tr>';
       }).join('');
