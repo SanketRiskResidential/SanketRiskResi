@@ -323,6 +323,9 @@
               '<div class="body">' + esc(rec.text || '') + '</div></div>';
     });
 
+    var spUrl = _supabase.storage.from('inspection-photos').getPublicUrl('inspections/' + r.id + '/site-plan.png').data.publicUrl + '?t=' + Date.now();
+    html += '<div id="sp-wrap" style="display:none;break-inside:avoid;page-break-inside:avoid;"><h2>Site Plan</h2><img id="sp-img" src="' + esc(spUrl) + '" alt="Site plan" style="width:100%;max-width:680px;display:block;margin:6px auto;border:1px solid var(--border);border-radius:6px;"></div>';
+
     var photos = f.photo_paths || [];
     if (photos.length) {
       html += '<h2>Photographs</h2><div class="photos">' + photos.map(function(path, i) {
@@ -334,6 +337,7 @@
     html += legalPages(r, f, vr, address);
     html += '<div class="foot"><span>Generated ' + esc(new Date().toLocaleDateString()) + '</span><span>Report ID ' + esc(String(r.id).slice(0, 8)) + '</span></div></div>';
     document.getElementById('root').innerHTML = html;
+    (function () { var im = document.getElementById('sp-img'), w = document.getElementById('sp-wrap'); if (im && w) { im.onload = function () { w.style.display = ''; }; im.onerror = function () { w.remove(); }; } })();
     document.title = 'Inspection Report — ' + (r.insured_name || 'Residential');
   }
 
